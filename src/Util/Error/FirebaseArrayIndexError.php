@@ -6,7 +6,13 @@ namespace Firebase\Util\Error;
 
 class FirebaseArrayIndexError
 {
-    public int $index;
+    /**
+     * @var int
+     */
+    public $index;
 
-    public FirebaseError $error;
+    /**
+     * @var FirebaseError
+     */
+    public $error;
 }

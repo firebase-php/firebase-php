@@ -5,9 +5,15 @@ namespace Firebase\FirebaseApp;
 use Firebase\Auth\Credential;
 
 class FirebaseAppInternals {
-    private bool $idDeleted = false;
+    /**
+     * @var bool
+     */
+    private $idDeleted = false;
 
-    private FirebaseAccessToken $cacheToken;
+    /**
+     * @var FirebaseAccessToken
+     */
+    private $cacheToken;
 
     public function __construct(Credential $credential)
     {

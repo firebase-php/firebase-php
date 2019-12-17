@@ -6,11 +6,23 @@ namespace Firebase\Auth;
 
 class RefreshToken
 {
-    public string $clientId;
+    /**
+     * @var string
+     */
+    public $clientId;
 
-    public string $clientSecret;
+    /**
+     * @var string
+     */
+    public $clientSecret;
 
-    public string $refreshToken;
+    /**
+     * @var string
+     */
+    public $refreshToken;
 
-    public string $type;
+    /**
+     * @var string
+     */
+    public $type;
 }

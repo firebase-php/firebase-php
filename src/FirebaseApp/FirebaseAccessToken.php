@@ -3,7 +3,13 @@
 namespace Firebase\FirebaseApp;
 
 class FirebaseAccessToken {
-    public string $accessToken;
+    /**
+     * @var string
+     */
+    public $accessToken;
 
-    public int $expirationTime;
+    /**
+     * @var int
+     */
+    public $expirationTime;
 }

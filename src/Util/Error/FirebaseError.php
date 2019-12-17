@@ -3,12 +3,12 @@
 
 namespace Firebase\Util\Error;
 
-
-use Throwable;
-
 class FirebaseError extends \Exception
 {
-    private ErrorInfo $errorInfo;
+    /**
+     * @var ErrorInfo
+     */
+    private $errorInfo;
 
     public function __construct(ErrorInfo $errorInfo)
     {

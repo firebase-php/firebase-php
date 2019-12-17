@@ -6,7 +6,10 @@ namespace Firebase\Util\Error;
 
 class PrefixedFirebaseError extends FirebaseError
 {
-    private string $codePrefix;
+    /**
+     * @var string
+     */
+    private $codePrefix;
 
     public function __construct(string $codePrefix, string $code, string $message)
     {

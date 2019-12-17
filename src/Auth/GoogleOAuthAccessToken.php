@@ -3,7 +3,13 @@
 namespace Firebase\Auth;
 
 class GoogleOAuthAccessToken {
-    public string $accessToken;
+    /**
+     * @var string
+     */
+    public $accessToken;
 
-    public int $expiresIn;
+    /**
+     * @var int
+     */
+    public $expiresIn;
 }
