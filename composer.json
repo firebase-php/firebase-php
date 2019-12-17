@@ -1,0 +1,19 @@
+{
+    "name": "tiptopcoder/firebase-php",
+    "description": "Firebase Admin SDK for PHP",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "^6.5",
+        "lcobucci/jwt": "^3.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "TipTopCoder",
+            "email": "nhantien2806@gmail.com"
+        }
+    ]
+}
