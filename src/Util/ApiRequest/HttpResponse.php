@@ -13,6 +13,9 @@ abstract class HttpResponse
 
     protected $data;
 
+    /**
+     * @var array | null
+     */
     protected $multipart;
 
     abstract public function isJson(): bool;
