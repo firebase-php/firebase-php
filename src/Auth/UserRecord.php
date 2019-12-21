@@ -48,8 +48,13 @@ class UserRecord
 
     public function __construct(User $response)
     {
-        v::objectType()->notEmpty()->assert($response);
-        v::stringType()->notEmpty()->assert($response->getUid());
+        if(!$response->getUid()) {
+            throw new FirebaseAuthError(
+                new ErrorInfo(AuthClientErrorCode::INTERNAL_ERROR['code']),
+                'INTERNAL ASSERT FAILED: Invalid user response'
+            );
+        }
+
         $this->uid = $response->getUid();
         $this->email = $response->getEmail();
         $this->phoneNumber = $response->getPhoneNumber();
@@ -67,9 +72,5 @@ class UserRecord
         $this->tokensValidAfterTimestamp = $response->getValidSince() * 1000;
         $this->userMetadata = new UserMetadata($response->getCreatedAt(), $response->getLastLoginAt());
         $this->customClaims = $this->parseCustomClaims($response->getCustomClaims());
-    }
-
-    private function parseCustomClaims(string $customClaims) {
-        return json_decode($customClaims, true);
     }
 }

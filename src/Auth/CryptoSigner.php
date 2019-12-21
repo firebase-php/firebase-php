@@ -15,5 +15,5 @@ interface CryptoSigner
     /**
      * @return string
      */
-    public function getAccount(): string;
+    public function getAccountId(): string;
 }
