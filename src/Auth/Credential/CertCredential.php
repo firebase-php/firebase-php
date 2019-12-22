@@ -5,6 +5,7 @@ namespace Firebase\Auth\Credential;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
@@ -32,9 +33,11 @@ class CertCredential implements FirebaseCredential
 
     public function getAccessToken(): GoogleOAuthAccessToken
     {
-        $client = new Client();
-        $response = $client->post(
-            self::GOOGLE_TOKEN_AUDIENCE,
+        $request = new Request(
+            'POST',
+            self::GOOGLE_TOKEN_AUDIENCE
+        );
+        return CredentialHelpers::requestAccessToken($request,
             [
                 'form_params' => [
                     'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
@@ -42,7 +45,6 @@ class CertCredential implements FirebaseCredential
                 ]
             ]
         );
-        return CredentialHelpers::accessTokenBuilder($response);
     }
 
     public function getCertificate(): ?Certificate

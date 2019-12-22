@@ -8,6 +8,7 @@ use Firebase\Auth\Credential;
 use Firebase\Util\Error\AuthClientErrorCode;
 use Firebase\Util\Error\FirebaseAppError;
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 
 class RefreshTokenCredential implements Credential
 {
@@ -38,9 +39,8 @@ class RefreshTokenCredential implements Credential
 
     public function getAccessToken(): GoogleOAuthAccessToken
     {
-        $client = new Client();
-        $response = $client->post(
-            'https://' . self::REFRESH_TOKEN_HOST . self::REFRESH_TOKEN_PATH,
+        $request = new Request('POST', 'https://' . self::REFRESH_TOKEN_HOST . self::REFRESH_TOKEN_PATH);
+        return CredentialHelpers::requestAccessToken($request,
             [
                 'form_params' => [
                     'client_id' => $this->refreshToken->getClientId(),
@@ -50,6 +50,5 @@ class RefreshTokenCredential implements Credential
                 ]
             ]
         );
-        return CredentialHelpers::accessTokenBuilder($response);
     }
 }

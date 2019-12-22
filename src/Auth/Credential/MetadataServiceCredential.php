@@ -6,6 +6,7 @@ namespace Firebase\Auth\Credential;
 
 use Firebase\Auth\Credential;
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 
 class MetadataServiceCredential implements Credential
 {
@@ -15,17 +16,9 @@ class MetadataServiceCredential implements Credential
 
     public function getAccessToken(): GoogleOAuthAccessToken
     {
-        $client = new Client();
-        $response = $client
-            ->post(
-                'http://' . self::GOOGLE_METADATA_SERVICE_HOST . self::GOOGLE_METADATA_SERVICE_PATH,
-                [
-                    'headers' => [
-                        'Metadata-Flavor' => 'Google'
-                    ]
-                ]
-            );
-        return CredentialHelpers::accessTokenBuilder($response);
+        $request = new Request('POST', 'http://' . self::GOOGLE_METADATA_SERVICE_HOST . self::GOOGLE_METADATA_SERVICE_PATH, [
+            'Metadata-Flavor' => 'Google'
+        ]);
+        return CredentialHelpers::requestAccessToken($request);
     }
-
 }
