@@ -67,9 +67,9 @@ class CertCredential implements FirebaseCredential
         $privateKey = new Key($this->certificate->getPrivateKey());
         $jwtBuilder = new Builder();
         $jwtBuilder
-            ->setAudience(self::GOOGLE_TOKEN_AUDIENCE)
-            ->setExpiration(self::ONE_HOUR_IN_SECONDS)
-            ->setIssuer($this->certificate->getClientEmail());
+            ->permittedFor(self::GOOGLE_TOKEN_AUDIENCE)
+            ->expiresAt(self::ONE_HOUR_IN_SECONDS)
+            ->issuedBy($this->certificate->getClientEmail());
         foreach($claims as $key => $claim) {
             $jwtBuilder->withClaim($key, $claim);
         }

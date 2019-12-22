@@ -1,16 +1,16 @@
 <?php
 
 
-namespace Firebase\Auth\Internal;
+namespace Firebase\Auth\TokenGenerator;
 
 
 interface CryptoSigner
 {
     /**
-     * @param array $payload
+     * @param string $payload
      * @return mixed
      */
-    public function sign(array $payload);
+    public function sign(string $payload);
 
     /**
      * @return string

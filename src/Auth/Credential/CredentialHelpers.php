@@ -58,7 +58,7 @@ class CredentialHelpers
 
     /**
      * @param $credential
-     * @return null
+     * @return Certificate|null
      */
     public static function tryGetCertificate($credential) {
         if($credential && self::isFirebaseCredential($credential)) {
