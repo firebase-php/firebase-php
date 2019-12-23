@@ -3,9 +3,10 @@
 
 namespace Firebase\Auth;
 
+use Lcobucci\JWT\Signer;
 use Respect\Validation\Validator as v;
 
-abstract class UserImportHash
+abstract class UserImportHash implements Signer
 {
     private $name;
 

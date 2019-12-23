@@ -3,8 +3,7 @@
 
 namespace Firebase\Auth;
 
-use Firebase\Auth\UserImportOptions\Builder;
-use Respect\Validation\Validator as v;
+use Firebase\Util\Validator\Validator;
 
 final class UserImportOptions
 {
@@ -13,18 +12,19 @@ final class UserImportOptions
      */
     private $hash;
 
-    public function __construct(Builder $builder)
+    public function __construct(UserImportOptionsBuilder $builder)
     {
-        v::objectType()->notEmpty()->assert($builder->getHash());
+        Validator::isNonNullObject($builder->getHash());
         $this->hash = $builder->getHash();
     }
 
     public static function withHash(UserImportHash $hash) {
+        Validator::isNonNullObject($hash);
         return self::builder()->setHash($hash)->build();
     }
 
     public static function builder() {
-        return new Builder();
+        return new UserImportOptionsBuilder();
     }
 
     /**
@@ -33,5 +33,9 @@ final class UserImportOptions
     public function getHash(): UserImportHash
     {
         return $this->hash;
+    }
+
+    public function getProperties() {
+        return $this->hash->getProperties();
     }
 }

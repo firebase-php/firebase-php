@@ -26,7 +26,7 @@ class UserInfo
     {
         if(!isset($response['rawId']) || !isset($response['providerId'])) {
             throw new FirebaseAuthError(
-                new ErrorInfo(AuthClientErrorCode::INTERNAL_ERROR),
+                new ErrorInfo(AuthClientErrorCode::INTERNAL_ERROR['code']),
                 'INTERNAL ASSERT FAILED: Invalid user info response'
             );
         }
@@ -37,17 +37,6 @@ class UserInfo
         $this->photoURL = $response['photoURL'];
         $this->providerId = $response['providerId'];
         $this->phoneNumber = $response['phoneNumber'];
-    }
-
-    public function toArray() {
-        return [
-            'uid' => $this->uid,
-            'displayName' => $this->displayName,
-            'email' => $this->email,
-            'photoURL' => $this->photoURL,
-            'providerId' => $this->providerId,
-            'phoneNumber' => $this->phoneNumber
-        ];
     }
 
     /**

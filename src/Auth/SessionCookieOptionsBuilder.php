@@ -1,12 +1,10 @@
 <?php
 
 
-namespace Firebase\Auth\SessionCookieOptions;
+namespace Firebase\Auth;
 
 
-use Firebase\Auth\SessionCookieOptions;
-
-class Builder
+class SessionCookieOptionsBuilder
 {
     /**
      * @var int
@@ -23,7 +21,7 @@ class Builder
 
     /**
      * @param int $expiresInMilli
-     * @return Builder
+     * @return SessionCookieOptionsBuilder
      */
     public function setExpiresIn(int $expiresInMilli)
     {

@@ -6,7 +6,7 @@ namespace Firebase\Auth\UserProvider;
 
 use Firebase\Auth\UserProvider;
 
-class Builder
+final class UserProviderBuilder
 {
     /**
      * @var string
@@ -35,9 +35,9 @@ class Builder
 
     /**
      * @param string $uid
-     * @return Builder
+     * @return UserProviderBuilder
      */
-    public function setUid(string $uid): Builder
+    public function setUid(string $uid): UserProviderBuilder
     {
         $this->uid = $uid;
         return $this;
@@ -45,9 +45,9 @@ class Builder
 
     /**
      * @param string $displayName
-     * @return Builder
+     * @return UserProviderBuilder
      */
-    public function setDisplayName(string $displayName): Builder
+    public function setDisplayName(string $displayName): UserProviderBuilder
     {
         $this->displayName = $displayName;
         return $this;
@@ -55,9 +55,9 @@ class Builder
 
     /**
      * @param string $email
-     * @return Builder
+     * @return UserProviderBuilder
      */
-    public function setEmail(string $email): Builder
+    public function setEmail(string $email): UserProviderBuilder
     {
         $this->email = $email;
         return $this;
@@ -65,9 +65,9 @@ class Builder
 
     /**
      * @param string $photoUrl
-     * @return Builder
+     * @return UserProviderBuilder
      */
-    public function setPhotoUrl(string $photoUrl): Builder
+    public function setPhotoUrl(string $photoUrl): UserProviderBuilder
     {
         $this->photoUrl = $photoUrl;
         return $this;
@@ -75,9 +75,9 @@ class Builder
 
     /**
      * @param string $providerId
-     * @return Builder
+     * @return UserProviderBuilder
      */
-    public function setProviderId(string $providerId): Builder
+    public function setProviderId(string $providerId): UserProviderBuilder
     {
         $this->providerId = $providerId;
         return $this;

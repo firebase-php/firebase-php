@@ -38,7 +38,7 @@ class BaseAuth
         return $this->tokenGenerator->createCustomToken($uid, $developerClaims);
     }
 
-    public function verifyIdToken(string $idToken, bool $checkRevoked = false): DecodedIdToken {
-        return $this->idTokenVerifier;
+    public function verifyIdToken(string $idToken, bool $checkRevoked = false): array {
+        return $this->idTokenVerifier->verifyJWT($idToken);
     }
 }

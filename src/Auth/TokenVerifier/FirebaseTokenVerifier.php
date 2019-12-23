@@ -14,8 +14,10 @@ use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
+use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Lcobucci\JWT\Token;
 use Lcobucci\JWT\ValidationData;
 
 /**

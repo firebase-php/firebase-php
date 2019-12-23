@@ -4,145 +4,81 @@
 namespace Firebase\Auth\UserRecord;
 
 
-class UpdateRequest
+use Firebase\Auth\Internal\GetAccountInfoResponse\User;
+use Firebase\Auth\UserRecord;
+use Firebase\Util\Validator\Validator;
+
+final class UpdateRequest extends UserRecordRequest
 {
-    private $disabled;
-
-    private $displayName;
-
-    private $email;
-
-    private $emailVerified;
-
-    private $password;
-
-    private $phoneNumber;
-
-    private $photoURL;
-
-    /**
-     * @return mixed
-     */
-    public function getDisabled()
+    public function __construct(string $uid)
     {
-        return $this->disabled;
+        Validator::isUid($uid);
+        $this->properties['uid'] = $uid;
     }
 
-    /**
-     * @param mixed $disabled
-     * @return UpdateRequest
-     */
-    public function setDisabled($disabled)
+    public function setPhoneNumber(string $phoneNumber = null)
     {
-        $this->disabled = $disabled;
+        if(!is_null($phoneNumber)) {
+            Validator::isPhoneNumber($phoneNumber);
+        }
+
+        $this->properties['phoneNumber'] = $phoneNumber;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getDisplayName()
+    public function setDisplayName(string $displayName = null)
     {
-        return $this->displayName;
-    }
-
-    /**
-     * @param mixed $displayName
-     * @return UpdateRequest
-     */
-    public function setDisplayName($displayName)
-    {
-        $this->displayName = $displayName;
+        $this->properties['displayName'] = $displayName;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getEmail()
+    public function setPhotoUrl(string $photoUrl = null)
     {
-        return $this->email;
-    }
-
-    /**
-     * @param mixed $email
-     * @return UpdateRequest
-     */
-    public function setEmail($email)
-    {
-        $this->email = $email;
+        if(!is_null($photoUrl)) {
+            Validator::isUid($photoUrl);
+        }
+        $this->properties['photoUrl'] = $photoUrl;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getEmailVerified()
-    {
-        return $this->emailVerified;
-    }
-
-    /**
-     * @param mixed $emailVerified
-     * @return UpdateRequest
-     */
-    public function setEmailVerified($emailVerified)
-    {
-        $this->emailVerified = $emailVerified;
+    public function setCustomClaims(array $customClaims = null) {
+        UserRecord::checkCustomClaims($customClaims);
+        $this->properties[UserRecord::CUSTOM_ATTRIBUTES] = $customClaims;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $password
-     * @return UpdateRequest
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
+    public function setValidSince(int $epochSeconds) {
+        UserRecord::checkValidSince($epochSeconds);
+        $this->properties['validSince'] = $epochSeconds;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPhoneNumber()
+    public function getProperties(): array
     {
-        return $this->phoneNumber;
-    }
+        $copy = array_replace([], $this->properties);
+        $remove = [];
 
-    /**
-     * @param mixed $phoneNumber
-     * @return UpdateRequest
-     */
-    public function setPhoneNumber($phoneNumber)
-    {
-        $this->phoneNumber = $phoneNumber;
-        return $this;
-    }
+        foreach(UserRecord::REMOVABLE_FIELDS as $key => $entry) {
+            if(in_array($key, array_keys($copy)) && is_null($copy[$key])) {
+                $remove[] = $entry;
+                unset($copy[$key]);
+            }
+        }
 
-    /**
-     * @return mixed
-     */
-    public function getPhotoURL()
-    {
-        return $this->photoURL;
-    }
+        if(!empty($remove)) {
+            $copy['deleteAttribute'] = array_replace([], $remove);
+        }
 
-    /**
-     * @param mixed $photoURL
-     * @return UpdateRequest
-     */
-    public function setPhotoURL($photoURL)
-    {
-        $this->photoURL = $photoURL;
-        return $this;
+        if(in_array('phoneNumber', $copy) && is_null($copy['phoneNumber'])) {
+            $copy['deleteProvider'] = ['phone'];
+            unset($copy['phoneNumber']);
+        }
+
+        if(in_array(UserRecord::CUSTOM_ATTRIBUTES, $copy)) {
+            $customClaims = array_replace([], $copy[UserRecord::CUSTOM_ATTRIBUTES]);
+            $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
+        }
+
+        return $copy;
     }
 }

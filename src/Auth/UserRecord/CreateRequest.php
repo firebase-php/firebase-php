@@ -4,25 +4,13 @@
 namespace Firebase\Auth\UserRecord;
 
 
-class CreateRequest extends UpdateRequest
+use Firebase\Util\Validator\Validator;
+
+final class CreateRequest extends UserRecordRequest
 {
-    private $uid;
-
-    /**
-     * @return mixed
-     */
-    public function getUid()
-    {
-        return $this->uid;
-    }
-
-    /**
-     * @param mixed $uid
-     * @return CreateRequest
-     */
-    public function setUid($uid)
-    {
-        $this->uid = $uid;
+    public function setUid(string $uid) {
+        Validator::isUid($uid);
+        $this->properties['localId'] = $uid;
         return $this;
     }
 }

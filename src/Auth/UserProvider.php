@@ -4,10 +4,10 @@
 namespace Firebase\Auth;
 
 
-use Firebase\Auth\UserProvider\Builder;
-use Respect\Validation\Validator as v;
+use Firebase\Auth\UserProvider\UserProviderBuilder;
+use Firebase\Util\Validator\Validator;
 
-class UserProvider
+final class UserProvider
 {
     /**
      * @var string
@@ -34,11 +34,10 @@ class UserProvider
      */
     private $providerId;
 
-    public function __construct(Builder $builder)
+    public function __construct(UserProviderBuilder $builder)
     {
-        $v = v::stringType()->notEmpty();
-        $v->assert($builder->getUid());
-        $v->assert($builder->getProviderId());
+        Validator::isNonEmptyString($builder->getUid());
+        Validator::isNonEmptyString($builder->getProviderId());
         $this->uid = $builder->getUid();
         $this->displayName = $builder->getDisplayName();
         $this->email = $builder->getEmail();
@@ -46,10 +45,77 @@ class UserProvider
         $this->providerId = $builder->getProviderId();
     }
 
-    /**
-     * @return Builder
-     */
     public static function builder() {
-        return new Builder();
+        return new UserProviderBuilder();
+    }
+
+    /**
+     * @return string
+     */
+    public function getUid(): string
+    {
+        return $this->uid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        return $this->displayName;
+    }
+
+    /**
+     * @param string $displayName
+     * @return UserProvider
+     */
+    public function setDisplayName(string $displayName): UserProvider
+    {
+        $this->displayName = $displayName;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param string $email
+     * @return UserProvider
+     */
+    public function setEmail(string $email): UserProvider
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPhotoUrl(): string
+    {
+        return $this->photoUrl;
+    }
+
+    /**
+     * @param string $photoUrl
+     * @return UserProvider
+     */
+    public function setPhotoUrl(string $photoUrl): UserProvider
+    {
+        $this->photoUrl = $photoUrl;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getProviderId(): string
+    {
+        return $this->providerId;
     }
 }

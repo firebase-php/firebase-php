@@ -1,24 +1,25 @@
 <?php
 
-
 namespace Firebase\Auth;
-
 
 class UserMetadata
 {
+    /**
+     * @var int
+     */
     private $creationTimestamp;
 
+    /**
+     * @var int
+     */
     private $lastSignInTimestamp;
 
-    /**
-     * UserMetadata constructor.
-     * @param int $creationTimestamp
-     * @param int|null $lastSignInTimestamp
-     */
     public function __construct(int $creationTimestamp, int $lastSignInTimestamp = null)
     {
         $this->creationTimestamp = $creationTimestamp;
-        $this->lastSignInTimestamp = $lastSignInTimestamp;
+        if(!is_null($lastSignInTimestamp)) {
+            $this->lastSignInTimestamp = $lastSignInTimestamp;
+        }
     }
 
     /**
@@ -30,9 +31,9 @@ class UserMetadata
     }
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getLastSignInTimestamp(): ?int
+    public function getLastSignInTimestamp(): int
     {
         return $this->lastSignInTimestamp;
     }

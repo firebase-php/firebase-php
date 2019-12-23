@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Firebase\Auth\TokenGenerator;
+namespace Firebase\Auth\Internal;
 
 
 use Firebase\Util\Error\AuthClientErrorCode;
@@ -32,7 +32,7 @@ class IAMSigner implements CryptoSigner
 
     }
 
-    public function getAccountId(): string
+    public function getAccount(): string
     {
         if(Validator::isNonEmptyString($this->serviceAccountId)) {
             return $this->serviceAccountId;

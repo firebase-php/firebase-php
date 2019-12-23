@@ -1,13 +1,10 @@
 <?php
 
 
-namespace Firebase\Auth\UserImportOptions;
+namespace Firebase\Auth;
 
 
-use Firebase\Auth\UserImportHash;
-use Firebase\Auth\UserImportOptions;
-
-class Builder
+class UserImportOptionsBuilder
 {
     /**
      * @var UserImportHash
@@ -24,9 +21,9 @@ class Builder
 
     /**
      * @param UserImportHash $hash
-     * @return Builder
+     * @return UserImportOptionsBuilder
      */
-    public function setHash(UserImportHash $hash): Builder
+    public function setHash(UserImportHash $hash): UserImportOptionsBuilder
     {
         $this->hash = $hash;
         return $this;

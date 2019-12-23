@@ -3,11 +3,7 @@
 
 namespace Firebase\Auth;
 
-
-use Firebase\Auth\SessionCookieOptions\Builder;
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
+use Carbon\CarbonInterval;
 use Firebase\Util\Validator\Validator;
 
 class SessionCookieOptions
@@ -17,14 +13,14 @@ class SessionCookieOptions
      */
     private $expiresIn;
 
-    public function __construct(Builder $builder)
+    public function __construct(SessionCookieOptionsBuilder $builder)
     {
-        if(!Validator::isNumber($builder->getExpiresIn())) {
-            $error = AuthClientErrorCode::INVALID_SESSION_COOKIE_DURATION;
-            throw new FirebaseAuthError(
-                new ErrorInfo($error['code'], $error['message'])
-            );
-        }
+        Validator::checkArgument($builder->getExpiresIn() > CarbonInterval::minutes(5)->totalMilliseconds, 'expiresIn duration must be at least 5 minutes');
+        Validator::checkArgument($builder->getExpiresIn() < CarbonInterval::days(14)->totalMilliseconds, 'expiresIn duration must be at most 14 days');
         $this->expiresIn = $builder->getExpiresIn();
+    }
+
+    public function getExpiresInSeconds() {
+        return CarbonInterval::millisecond($this->expiresIn)->totalSeconds;
     }
 }

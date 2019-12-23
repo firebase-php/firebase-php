@@ -3,16 +3,22 @@
 namespace Firebase\Util\Validator;
 
 
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\IsTrue;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Url;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Component\Validator\Exception\InvalidArgumentException;
+use Symfony\Component\Validator\Validation;
+
 class Validator
 {
     public static function isArray($value): bool {
         return is_array($value);
     }
-
-    public static function isNonEmptyArray($value): bool {
-        return self::isArray($value) && count($value) !== 0;
-    }
-
     public static function isBoolean($value): bool {
         return is_bool($value);
     }
@@ -34,56 +40,67 @@ class Validator
         return !empty($matches);
     }
 
-    public static function isNonEmptyString($value): bool {
-        return self::isString($value) && $value !== '';
+    public static function isNonEmptyString($value, $message = null) {
+        self::isNonEmptyArray($value, $message);
+        return $value;
     }
 
-    public static function isObject($value): bool {
-        return is_object($value) && !self::isArray($value);
+    public static function isNonEmptyArray($value, $message = null) {
+        $rule = new NotBlank(is_null($message) ? [] : ['message' => $message]);
+        $violations = self::validator()->validate($value, [$rule]);
+        self::check($violations, $rule->message);
+        return $value;
     }
 
-    public static function isNonNullObject($value): bool {
-        return self::isObject($value) && !is_null($value);
+    public static function isNonNullObject($value, $message = null) {
+        $rule = new NotNull(is_null($message) ? [] : ['message' => $message]);
+        $violations = self::validator()->validate($value, [$rule]);
+        self::check($violations, $rule->message);
+        return $value;
     }
 
-    public static function isUid($uid): bool {
-        return self::isString($uid) && strlen($uid) > 0 && strlen($uid) <= 128;
+    public static function isUid($uid) {
+        self::isNonEmptyString($uid, 'UID cannot be null or empty');
+        $rule = new Length([
+            'max' => 128,
+            'maxMessage' => 'UID cannot be longer than 128 characters'
+        ]);
+        $violations = self::validator()->validate($uid, [$rule]);
+        self::check($violations, $rule->maxMessage);
+        return $uid;
     }
 
-    public static function isPassword($password): bool {
-        return self::isString($password) && strlen($password) >= 6;
+    public static function isPassword($password) {
+        self::isNonEmptyString($password);
+        $rule = new Length([
+            'min' => 6,
+            'minMessage' => 'Password must be at least 6 characters long'
+        ]);
+        $violations = self::validator()->validate($password, [$rule]);
+        self::check($violations, $rule->minMessage);
     }
 
-    public static function isEmail($email): bool {
-        if(!self::isString($email)) {
-            return false;
-        }
-
-        preg_match('/^[^@]+@[^@]+$/', $email, $matches);
-        return !empty($matches);
+    public static function isEmail($email) {
+        self::isNonEmptyString($email, 'Email cannot be null or empty');
+        $rule = new Email();
+        $violations = self::validator()->validate($email, [$rule]);
+        self::check($violations, $rule->message);
+        return $email;
     }
 
-    public static function isPhoneNumber($phoneNumber): bool {
-        if(!self::isString($phoneNumber)) {
-            return false;
-        }
-
-        // Phone number validation is very lax here. Backend will enforce E.164
-        // spec compliance and will normalize accordingly.
-        // The phone number string must be non-empty and starts with a plus sign.
-        $pattern1 = '/^\+/';
-
-        // The phone number string must contain at least one alphanumeric character.
-        $pattern2 = '/[\da-zA-Z]+/';
-
-        preg_match($pattern1, $phoneNumber, $matches1);
-        preg_match($pattern2, $phoneNumber, $matches2);
-
-        return !empty($matches1) && !empty($matches2);
+    public static function isPhoneNumber($phoneNumber) {
+        self::isNonEmptyString($phoneNumber, 'Phone number cannot be null or empty');
+        $rule = new Regex(['pattern' => '/^\+[\da-zA-Z]+/', 'message' => "Phone number must be a valid, E.164 compliant identifier starting with a '+' sign"]);
+        $violations = self::validator()->validate($phoneNumber, [$rule]);
+        self::check($violations, $rule->message);
+        return $phoneNumber;
     }
 
-    public static function isURL($urlStr): bool {
-        return true;
+    public static function isURL($url, $subject = 'URL') {
+        self::isNonEmptyString($url, $subject . ' cannot be null or empty');
+        $rule = new Url(['message' => $subject . ' is an invalid URL']);
+        $violations = self::validator()->validate($url, [$rule]);
+        self::check($violations, $rule->message);
     }
 
     public static function isTopic($topic): bool {
@@ -93,5 +110,24 @@ class Validator
 
         preg_match('/^(\/topics\/)?(private\/)?[a-zA-Z0-9-_.~%]+$/', $topic, $matches);
         return !empty($matches);
+    }
+
+    public static function checkArgument(bool $value, $message = null) {
+        $rule = new IsTrue();
+        $violations = self::validator()->validate($value, [$rule]);
+        self::check($violations, $message || $rule->message);
+    }
+
+    /**
+     * @return \Symfony\Component\Validator\Validator\ValidatorInterface
+     */
+    private static function validator() {
+        return Validation::createValidator();
+    }
+
+    private static function check(ConstraintViolationListInterface $violations, string $message = null) {
+        if(count($violations) > 0) {
+            throw new InvalidArgumentException($message);
+        }
     }
 }

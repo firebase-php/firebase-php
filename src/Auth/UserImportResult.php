@@ -5,7 +5,7 @@ namespace Firebase\Auth;
 
 
 use Firebase\Auth\Internal\UploadAccountResponse;
-use Respect\Validation\Validator as v;
+use Firebase\Util\Validator\Validator;
 
 final class UserImportResult
 {
@@ -19,18 +19,13 @@ final class UserImportResult
      */
     private $errors;
 
-    /**
-     * UserImportResult constructor.
-     * @param int $users
-     * @param UploadAccountResponse $response
-     */
     public function __construct(int $users, UploadAccountResponse $response)
     {
         /** @var ErrorInfo[] $errorBuilder */
         $errorBuilder = [];
         $errors = $response->getErrors();
         if(!is_null($errors)) {
-            v::yes()->assert($users >= count($errors));
+            Validator::checkArgument($users > count($errors));
 
             foreach($errors as $error) {
                 $errorBuilder[] = new ErrorInfo($error->getIndex(), $error->getMessage());

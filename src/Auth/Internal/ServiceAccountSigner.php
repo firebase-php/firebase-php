@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Firebase\Auth\TokenGenerator;
+namespace Firebase\Auth\Internal;
 
 
 use Firebase\Auth\Credential\Certificate;
@@ -44,7 +44,7 @@ class ServiceAccountSigner implements CryptoSigner
         return $sign->createHash($payload, new Key($this->certificate->getPrivateKey()));
     }
 
-    public function getAccountId(): string
+    public function getAccount(): string
     {
         return $this->certificate->getClientEmail();
     }
