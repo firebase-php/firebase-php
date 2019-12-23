@@ -4,6 +4,7 @@
 namespace Firebase;
 
 
+use Firebase\Util\Validator\Validator;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google\Auth\Credentials\IAMCredentials;
 use Google\Auth\Credentials\ServiceAccountCredentials;
@@ -39,7 +40,7 @@ final class FirebaseOptions
     private $storageBucket;
 
     /**
-     * @var IAMCredentials|ServiceAccountCredentials
+     * @var ServiceAccountCredentials|mixed
      */
     private $credentials;
 
@@ -68,6 +69,28 @@ final class FirebaseOptions
      */
     private $readTimeout;
 
+    public function __construct(FirebaseOptionsBuilder $builder)
+    {
+        $this->databaseUrl = $builder->getDatabaseUrl();
+        $this->credentials = Validator::isNonNullObject($builder->getCredentials(), 'FirebaseOptions must be initialized with setCredentials().');
+        $this->databaseAuthVariableOverride = $builder->getDatabaseAuthVariableOverride();
+        $this->projectId = $builder->getProjectId();
+        if(!empty($builder->getStorageBucket())) {
+            preg_match('/^gs:\/\//', $builder->getStorageBucket(), $matches);
+            Validator::checkArgument(!empty($matches), 'StorageBucket must not include "gs://" prefix.');
+        }
+
+        $this->serviceAccountId = empty($builder->getServiceAccountId()) ? null : $builder->getServiceAccountId();
+        Validator::checkArgument($builder->getConnectTimeout() >= 0);
+        $this->connectTimeout = $builder->getConnectTimeout();
+        Validator::checkArgument($builder->getReadTimeout() >= 0);
+        $this->readTimeout = $builder->getReadTimeout();
+    }
+
+    public static function builder() {
+        return new FirebaseOptionsBuilder();
+    }
+
     /**
      * @return string
      */
@@ -85,7 +108,7 @@ final class FirebaseOptions
     }
 
     /**
-     * @return IAMCredentials|ServiceAccountCredentials
+     * @return ServiceAccountCredentials|mixed
      */
     public function getCredentials()
     {

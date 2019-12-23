@@ -56,7 +56,7 @@ class FirebaseTokenGenerator
             );
         }
 
-        $now = intval(Carbon::now()->getTimestamp()/1000);
+        $now = intval(Carbon::now()->timestamp);
         $serviceAccountEmail = $this->signer->getAccountId();
         $header = [
             'alg' => (new Sha256())->getAlgorithmId(),

@@ -101,6 +101,7 @@ class Validator
         $rule = new Url(['message' => $subject . ' is an invalid URL']);
         $violations = self::validator()->validate($url, [$rule]);
         self::check($violations, $rule->message);
+        return $url;
     }
 
     public static function isTopic($topic): bool {

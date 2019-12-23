@@ -16,6 +16,10 @@ final class UpdateRequest extends UserRecordRequest
         $this->properties['uid'] = $uid;
     }
 
+    public function getUid() {
+        return $this->properties['localId'];
+    }
+
     public function setPhoneNumber(string $phoneNumber = null)
     {
         if(!is_null($phoneNumber)) {

@@ -15,7 +15,7 @@ final class FirebaseToken
 
     public function __construct(array $claims = null)
     {
-        Validator::checkArgument(is_array($claims) && in_array('sub', array_keys($claims)));
+        Validator::checkArgument(is_array($claims) && isset($claims['sub']), 'Claims map must at least contain sub');
         $this->claims = array_replace([], $claims);
     }
 

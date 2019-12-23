@@ -4,7 +4,8 @@
 namespace Firebase\Auth;
 
 
-use Firebase\FirebaseApp;
+use Firebase\Auth\Internal\GooglePublicKeysManager;
+use Firebase\Auth\Internal\IdTokenVerifier;
 
 class FirebaseTokenVerifierImplBuilder
 {
@@ -24,26 +25,16 @@ class FirebaseTokenVerifierImplBuilder
     private $docUrl;
 
     /**
-     * @var string
+     * @var GooglePublicKeysManager
      */
-    private $clientCertUrl;
+    private $publicKeysManager;
 
     /**
-     * @var string
+     * @var IdTokenVerifier
      */
-    private $algorithm;
+    private $idTokenVerifier;
 
-    /**
-     * @var string
-     */
-    private $issuer;
-
-    /**
-     * @var FirebaseApp
-     */
-    private $app;
-
-    public function builder() {
+    public function build() {
         return new FirebaseTokenVerifierImpl($this);
     }
 
@@ -102,74 +93,38 @@ class FirebaseTokenVerifierImplBuilder
     }
 
     /**
-     * @return string
+     * @return GooglePublicKeysManager
      */
-    public function getClientCertUrl(): string
+    public function getPublicKeysManager(): GooglePublicKeysManager
     {
-        return $this->clientCertUrl;
+        return $this->publicKeysManager;
     }
 
     /**
-     * @param string $clientCertUrl
+     * @param GooglePublicKeysManager $publicKeysManager
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setClientCertUrl(string $clientCertUrl): FirebaseTokenVerifierImplBuilder
+    public function setPublicKeysManager(GooglePublicKeysManager $publicKeysManager): FirebaseTokenVerifierImplBuilder
     {
-        $this->clientCertUrl = $clientCertUrl;
+        $this->publicKeysManager = $publicKeysManager;
         return $this;
     }
 
     /**
-     * @return string
+     * @return IdTokenVerifier
      */
-    public function getAlgorithm(): string
+    public function getIdTokenVerifier(): IdTokenVerifier
     {
-        return $this->algorithm;
+        return $this->idTokenVerifier;
     }
 
     /**
-     * @param string $algorithm
+     * @param IdTokenVerifier $idTokenVerifier
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setAlgorithm(string $algorithm): FirebaseTokenVerifierImplBuilder
+    public function setIdTokenVerifier(IdTokenVerifier $idTokenVerifier): FirebaseTokenVerifierImplBuilder
     {
-        $this->algorithm = $algorithm;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIssuer(): string
-    {
-        return $this->issuer;
-    }
-
-    /**
-     * @param string $issuer
-     * @return FirebaseTokenVerifierImplBuilder
-     */
-    public function setIssuer(string $issuer): FirebaseTokenVerifierImplBuilder
-    {
-        $this->issuer = $issuer;
-        return $this;
-    }
-
-    /**
-     * @return FirebaseApp
-     */
-    public function getApp(): FirebaseApp
-    {
-        return $this->app;
-    }
-
-    /**
-     * @param FirebaseApp $app
-     * @return FirebaseTokenVerifierImplBuilder
-     */
-    public function setApp(FirebaseApp $app): FirebaseTokenVerifierImplBuilder
-    {
-        $this->app = $app;
+        $this->idTokenVerifier = $idTokenVerifier;
         return $this;
     }
 }

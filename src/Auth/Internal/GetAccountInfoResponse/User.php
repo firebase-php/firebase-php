@@ -4,10 +4,13 @@
 namespace Firebase\Auth\Internal\GetAccountInfoResponse;
 
 
-class User
+use Firebase\Auth\Internal\ResponseBuilder;
+
+class User implements ResponseBuilder
 {
     /**
      * @var string
+     * @key localId
      */
     private $uid;
 
@@ -43,6 +46,7 @@ class User
 
     /**
      * @var Provider[]
+     * @key providerUserInfo
      */
     private $providers;
 
@@ -63,6 +67,7 @@ class User
 
     /**
      * @var string
+     * @key customAttributes
      */
     private $customClaims;
 
@@ -162,4 +167,29 @@ class User
         return $this->customClaims;
     }
 
+    /**
+     * @param array $content
+     * @return static
+     */
+    public static function build(array $content = []) {
+        $user = new static();
+        $user->uid = $content['localId'];
+        $user->email = $content['email'];
+        $user->phoneNumber = $content['phoneNumber'];
+        $user->emailVerified = $content['emailVerified'];
+        $user->displayName = $content['displayName'];
+        $user->photoUrl = $content['photoUrl'];
+        $user->disabled = $content['disabled'];
+        $user->providers = [];
+        if(is_array($content['providerUserInfo'])) {
+            foreach($content['providerUserInfo'] as $provider) {
+                $user->providers[] = Provider::build($provider);
+            }
+        }
+        $user->createdAt = $content['createdAt'];
+        $user->lastLoginAt = $content['lastLoginAt'];
+        $user->validSince = $content['validSince'];
+        $user->customClaims = $content['customAttributes'];
+        return $user;
+    }
 }

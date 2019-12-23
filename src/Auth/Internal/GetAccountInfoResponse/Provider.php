@@ -4,10 +4,13 @@
 namespace Firebase\Auth\Internal\GetAccountInfoResponse;
 
 
-class Provider
+use Firebase\Auth\Internal\ResponseBuilder;
+
+class Provider implements ResponseBuilder
 {
     /**
      * @var string|null
+     * @key rawId
      */
     private $uid;
 
@@ -82,5 +85,16 @@ class Provider
     public function getProviderId(): ?string
     {
         return $this->providerId;
+    }
+
+    public static function build(array $content) {
+        $provider = new Provider();
+        $provider->uid = $content['rawId'];
+        $provider->email = $content['email'];
+        $provider->phoneNumber = $content['displayName'];
+        $provider->photoUrl = $content['photoUrl'];
+        $provider->providerId = $content['providerId'];
+
+        return $provider;
     }
 }

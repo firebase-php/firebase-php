@@ -36,7 +36,7 @@ class FirebaseOptionsBuilder
     private $serviceAccountId;
 
     /**
-     * @var mixed
+     * @var ServiceAccountCredentials|mixed
      */
     private $credentials;
 
@@ -51,7 +51,18 @@ class FirebaseOptionsBuilder
     private $readTimeout;
 
 
-    public function __construct(FirebaseOptions $options = null) {}
+    public function __construct(FirebaseOptions $options = null) {
+        if(is_null($options)) {
+            return;
+        }
+        $this->databaseUrl = $options->getDatabaseUrl();
+        $this->storageBucket = $options->getStorageBucket();
+        $this->credentials = $options->getCredentials();
+        $this->databaseAuthVariableOverride = $options->getDatabaseAuthVariableOverride();
+        $this->projectId = $options->getProjectId();
+        $this->connectTimeout = $options->getConnectTimeout();
+        $this->readTimeout = $options->getReadTimeout();
+    }
 
     /**
      * @return array
@@ -152,7 +163,7 @@ class FirebaseOptionsBuilder
     }
 
     /**
-     * @param mixed $credentials
+     * @param ServiceAccountCredentials|mixed $credentials
      * @return FirebaseOptionsBuilder
      */
     public function setCredentials($credentials)

@@ -3,6 +3,7 @@
 namespace Firebase;
 
 use Firebase\Util\Validator\Validator;
+use Google\Auth\Credentials\ServiceAccountCredentials;
 
 class FirebaseApp {
     /**
@@ -123,5 +124,38 @@ class FirebaseApp {
             ->setConnectTimeout($contentArray['connectTimeout'])
             ->setReadTimeout($contentArray['readTimeout']);
         return $builder->setCredentials(FirebaseOptions::getApplicationDefaultCredentials())->build();
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return FirebaseOptions
+     */
+    public function getOptions(): FirebaseOptions
+    {
+        return $this->options;
+    }
+
+    public function getProjectId(): string {
+        $projectId = $this->options->getProjectId();
+
+        if(empty($projectId)) {
+            $projectId = getenv('GOOGLE_CLOUD_PROJECT');
+        }
+        if(empty($projectId)) {
+            $projectId = getenv('GCLOUD_PROJECT');
+        }
+
+        return $projectId;
+    }
+
+    public function isDefaultApp() {
+        return $this->name === self::DEFAULT_APP_NAME;
     }
 }

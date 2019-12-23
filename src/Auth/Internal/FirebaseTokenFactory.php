@@ -28,7 +28,7 @@ class FirebaseTokenFactory
             'alg' => (new Sha256())->getAlgorithmId(),
             'typ' => 'JWT'
         ];
-        $iat = intval(Carbon::now()->timestamp/1000);
+        $iat = intval(Carbon::now()->timestamp);
         $payload = [
             'uid' => $uid,
             'iss' => $this->signer->getAccount(),

@@ -3,17 +3,10 @@
 
 namespace Firebase\Auth;
 
-
 use Carbon\Carbon;
-use Firebase\FirebaseApp;
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
-use Firebase\Util\Util;
+use Firebase\Auth\Internal\GooglePublicKeysManager;
+use Firebase\Auth\Internal\IdTokenVerifier;
 use Firebase\Util\Validator\Validator;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Psr7\Request;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac;
 use Lcobucci\JWT\Signer\Rsa;
@@ -50,44 +43,23 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     private $docUrl;
 
     /**
-     * @var string
+     * @var GooglePublicKeysManager
      */
-    private $issuer;
+    private $publicKeysManager;
 
     /**
-     * @var FirebaseApp
+     * @var IdTokenVerifier
      */
-    private $app;
-
-    /**
-     * @var array
-     */
-    private $publicKeys;
-
-    /**
-     * @var int
-     */
-    private $publicKeysExpireAt;
-
-    /**
-     * @var string
-     */
-    private $clientCertUrl;
+    private $idTokenVerifier;
 
     public function __construct(FirebaseTokenVerifierImplBuilder $builder)
     {
-        Validator::isNonEmptyString($builder->getMethod(), 'Method name must be specified');
-        Validator::isNonEmptyString($builder->getShortName(), 'Short name must be specified');
-        Validator::isNonEmptyString($builder->getDocUrl(), 'Doc URL must be specified');
-        Validator::isURL($builder->getIssuer());
-        Validator::isURL($builder->getClientCertUrl());
-        $this->method = $builder->getMethod();
-        $this->shortName = $builder->getShortName();
-        $this->docUrl = $builder->getDocUrl();
+        $this->method = Validator::isNonEmptyString($builder->getMethod(), 'Method name must be specified');
+        $this->shortName = Validator::isNonEmptyString($builder->getShortName(), 'Short name must be specified');
+        $this->docUrl = Validator::isNonEmptyString($builder->getDocUrl(), 'Doc URL must be specified');
+        $this->publicKeysManager = Validator::isNonNullObject($builder->getPublicKeysManager());
+        $this->idTokenVerifier = Validator::isNonNullObject($builder->getIdTokenVerifier());
         $this->articledShortName = $this->prefixWithIndefiniteArticle($this->shortName);
-        $this->issuer = $builder->getIssuer();
-        $this->app = $builder->getApp();
-        $this->clientCertUrl = $builder->getClientCertUrl();
     }
 
     public function verifyToken(string $jwtToken)
@@ -125,8 +97,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     }
 
     private function checkContents(Token $token) {
-        $projectId = Util::findProjectId($this->app);
-        $errorMessage = $this->getErrorIfContentInvalid($token, $projectId);
+        $errorMessage = $this->getErrorIfContentInvalid($token);
 
         if(is_string($errorMessage)) {
             $message = sprintf('%s %s', $errorMessage, $this->getVerifyTokenMessage());
@@ -147,13 +118,14 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     }
 
     private function isSignatureValid(Token $idToken) {
-        $publicKeys = $this->fetchPublicKeys();
-        $kid = $idToken->getHeader('kid');
-        if(isset($publicKeys[$kid])) {
-            return $this->verifyJwtSignatureWithKey($idToken, $publicKeys[$kid]);
-        } else {
-            return false;
+        $publicKeys = $this->publicKeysManager->getPublicKeys();
+        foreach($publicKeys as $key) {
+            if($idToken->verify(new Sha256(), $key)) {
+                return true;
+            }
         }
+
+        return false;
     }
 
     private function getVerifyTokenMessage() {
@@ -164,9 +136,9 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         );
     }
 
-    private function getErrorIfContentInvalid(Token $idToken, string $projectId) {
+    private function getErrorIfContentInvalid(Token $idToken) {
         $errorMessage = null;
-        if($idToken->getHeader('kid')) {
+        if(!$idToken->hasHeader('kid')) {
             $errorMessage = $this->getErrorForTokenWithoutKid($idToken);
         } elseif ((new Rsa\Sha256())->getAlgorithmId() !== $idToken->getHeader('algo')) {
             $errorMessage = sprintf(
@@ -175,19 +147,19 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 (new Rsa\Sha256())->getAlgorithmId(),
                 $idToken->getHeader('algo')
             );
-        } elseif ($idToken->getClaim('aud') !== $projectId) {
+        } elseif ($idToken->getClaim('aud') !== $this->idTokenVerifier->getAudience()) {
             $errorMessage = sprintf(
                 'Firebase %s has incorrect "aud" (audience) claim. Expected "%s" but got "%s". %s',
                 $this->shortName,
-                $projectId,
+                $this->idTokenVerifier->getAudience(),
                 $idToken->getClaim('aud'),
                 $this->getProjectIdMatchMessage()
             );
-        } elseif ($idToken->getClaim('iss') !== $this->issuer . $projectId) {
+        } elseif ($idToken->getClaim('iss') !== $this->idTokenVerifier->getIssuer()) {
             $errorMessage = sprintf(
                 'Firebase %s has incorrect "iss" (issuer) claim. Expected "%s" but got "%s". %s',
                 $this->shortName,
-                $this->issuer . $projectId,
+                $this->idTokenVerifier->getIssuer(),
                 $idToken->getClaim('iss'),
                 $this->getProjectIdMatchMessage()
             );
@@ -204,6 +176,12 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         } elseif (strlen($idToken->getClaim('sub')) > 128) {
             $errorMessage = sprintf(
                 'Firebase %s has "sub" (subject) claim longer than 128 characters.',
+                $this->shortName
+            );
+        } elseif (!$this->verifyTimestamp($idToken)) {
+            $errorMessage = sprintf(
+                'Fireabse %s has expired or is not yet valid. Get a fresh %s and try again.',
+                $this->shortName,
                 $this->shortName
             );
         }
@@ -254,61 +232,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         return sprintf('Make sure the %s comes from the same Firebase project as the service account used to  authenticate this SDK.'. $this->shortName);
     }
 
-    /**
-     * @return array
-     * @throws FirebaseAuthException
-     */
-    private function fetchPublicKeys(): array {
-        $publicKeysExist = isset($this->publicKeys);
-        $publicKeysExpiredExist = isset($this->publicKeysExpireAt);
-        $publicKeysStillValid = ($publicKeysExpiredExist && Carbon::now()->getTimestamp() < $this->publicKeysExpireAt);
-        if($publicKeysExist && $publicKeysStillValid) {
-            return $this->publicKeys;
-        }
-
-        $request = new Request('GET', $this->clientCertUrl);
-
-        try {
-            $response = (new Client())->send($request);
-            $body = json_decode($response->getBody());
-            if(isset($body['error'])) {
-                throw new ClientException('', $request, $response);
-            }
-
-            $headers = $response->getHeaders();
-
-            if(isset($headers['cache-control'])) {
-                $cacheControlHeader = $headers['cache-control'];
-                $parts = explode(',', $cacheControlHeader);
-                foreach ($parts as $part) {
-                    $subParts = explode('=', trim($part));
-                    if($subParts[0] === 'max-age') {
-                        $maxAge = +$subParts[1];
-                        $this->publicKeysExpireAt = Carbon::now()->getTimestamp() + $maxAge * 1000;
-                    }
-                }
-            }
-            $this->publicKeys = $body;
-            return $body;
-        } catch (\Exception $e) {
-            if($e instanceof ClientException) {
-                $errorMessage = 'Error fetching public keys for Google certs: ';
-                $response = $e->getResponse();
-                $body = json_decode($response->getBody());
-                if(isset($body['error'])) {
-                    $errorMessage .= $body['error'];
-                    if(isset($body['error_description'])) {
-                        $errorMessage .= sprintf(' (%s)', $body['error_description']);
-                    }
-                }
-
-                throw new FirebaseAuthException(self::ERROR_RUNTIME_EXCEPTION, $errorMessage);
-            }
-            throw new FirebaseAuthException(self::ERROR_RUNTIME_EXCEPTION, 'Error while verifying signature.', $e);
-        }
-    }
-
-    private function verifyJwtSignatureWithKey(Token $idToken, string $publicKey): bool {
-        return $idToken->verify(new Sha256(), $publicKey) && $idToken->validate(new ValidationData());
+    private function verifyTimestamp(Token $idToken) {
+        $currentTimeMillis = Carbon::now()->valueOf();
+        return $idToken->isExpired(Carbon::createFromTimestampMs($currentTimeMillis - $this->idTokenVerifier->getAcceptableTimeSkewSeconds()));
     }
 }
