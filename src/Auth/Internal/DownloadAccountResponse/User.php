@@ -22,8 +22,11 @@ class User extends GetAccountInfoResponse\User
      * @param array $content
      * @return User|GetAccountInfoResponse\User
      */
-    public static function build(array $content = [])
+    public static function build(array $content = null)
     {
+        if(empty($content)) {
+            return null;
+        }
         /** @var User $user */
         $user = parent::build($content);
         $user->passwordSalt = $content['salt'];

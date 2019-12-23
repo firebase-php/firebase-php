@@ -16,6 +16,12 @@ class ErrorInfo
      */
     private $message;
 
+    public function __construct(int $index, string $message)
+    {
+        $this->index = $index;
+        $this->message = $message;
+    }
+
     /**
      * @return int
      */

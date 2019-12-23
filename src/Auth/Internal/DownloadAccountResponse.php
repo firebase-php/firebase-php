@@ -39,8 +39,11 @@ class DownloadAccountResponse implements ResponseBuilder
         return !empty($this->users);
     }
 
-    public static function build(array $content)
+    public static function build(array $content = null)
     {
+        if(empty($content)) {
+            return null;
+        }
         $response = new static();
         $response->users = [];
         if(is_array($content['users'])) {

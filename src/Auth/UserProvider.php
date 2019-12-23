@@ -11,6 +11,7 @@ final class UserProvider
 {
     /**
      * @var string
+     * @key rawId
      */
     private $uid;
 

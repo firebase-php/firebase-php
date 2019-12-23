@@ -4,6 +4,8 @@
 namespace Firebase\Auth\UserImportBuilder;
 
 
+use Firebase\Auth\UserRecord;
+
 class UserImportRecord
 {
     /**
@@ -13,7 +15,7 @@ class UserImportRecord
 
     public function __construct(array $properties)
     {
-        $this->properties = $properties;
+        $this->properties = array_replace([], $properties);
     }
 
     /**
@@ -21,7 +23,15 @@ class UserImportRecord
      */
     public function getProperties(): array
     {
-        return $this->properties;
+        $copy = array_replace([], $this->properties);
+
+        // serialize custom claims
+        if(isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
+            $customClaims = $copy[UserRecord::CUSTOM_ATTRIBUTES];
+            $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
+        }
+
+        return $copy;
     }
 
     /**

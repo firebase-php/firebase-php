@@ -4,8 +4,10 @@
 namespace Firebase\Auth;
 
 
+use Firebase\Auth\Internal\DownloadAccountResponse;
+use Firebase\Auth\Internal\EmailLinkType;
 use Firebase\Auth\Internal\GetAccountInfoResponse;
-use Firebase\Auth\Internal\ResponseBuilder;
+use Firebase\Auth\Internal\UploadAccountResponse;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\FirebaseApp;
@@ -13,7 +15,6 @@ use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\RequestInterface;
 
 class FirebaseUserManager
 {
@@ -46,6 +47,10 @@ class FirebaseUserManager
 
     const MAX_IMPORT_USERS = 1000;
 
+    const FIREBASE_AUTH_HEADERS = [
+//        self::CLIENT_VESION_HEADER => 'Java/Admin/<XXX_SDK_VERSION_XXX>' // TODO: Test what happened if no version header
+    ];
+
     private const ID_TOOLKIT_URL = 'https://identitytoolkit.googleapis.com/v1/projects/%s';
 
     private const CLIENT_VESION_HEADER = 'X-Client-Version';
@@ -65,52 +70,57 @@ class FirebaseUserManager
 
     public function getUserById(string $uid): UserRecord {
         $payload = ['localId' => [$uid]];
-        /** @var GetAccountInfoResponse $response */
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
-        if(empty($response->getUsers())) {
+        $instance = GetAccountInfoResponse::build($response);
+        if(empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided user ID: $uid"
             );
         }
-        return new UserRecord($response->getUsers()[0]);
+        return new UserRecord($instance->getUsers()[0]);
     }
 
     public function getUserByEmail(string $email): UserRecord {
         $payload = ['email' => [$email]];
-        /** @var GetAccountInfoResponse $response */
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
-        if(empty($response->getUsers())) {
+        $instance = GetAccountInfoResponse::build($response);
+        if(empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided email: $email"
             );
         }
-        return new UserRecord($response->getUsers()[0]);
+        return new UserRecord($instance->getUsers()[0]);
     }
 
     public function getUserByPhoneNumber(string $phoneNumber): UserRecord {
         $payload = ['phoneNumber' => [$phoneNumber]];
-        /** @var GetAccountInfoResponse $response */
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
-        if(empty($response->getUsers())) {
+        $instance = GetAccountInfoResponse::build($response);
+        if(empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided phone number: $phoneNumber"
             );
         }
-        return new UserRecord($response->getUsers()[0]);
+        return new UserRecord($instance->getUsers()[0]);
     }
 
+    /**
+     * @param CreateRequest $request
+     * @return string
+     * @throws FirebaseAuthException
+     */
     public function createUser(CreateRequest $request) {
         $response = $this->post(
             '/accounts',
@@ -125,6 +135,10 @@ class FirebaseUserManager
         throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to create new user');
     }
 
+    /**
+     * @param UpdateRequest $request
+     * @throws FirebaseAuthException
+     */
     public function updateUser(UpdateRequest $request) {
         $response = $this->post(
             '/accounts:update',
@@ -135,6 +149,10 @@ class FirebaseUserManager
         }
     }
 
+    /**
+     * @param string $uid
+     * @throws FirebaseAuthException
+     */
     public function deleteUser(string $uid) {
         $payload = ['localId' => $uid];
         $response = $this->post(
@@ -146,6 +164,12 @@ class FirebaseUserManager
         }
     }
 
+    /**
+     * @param int $maxResults
+     * @param string $pageToken
+     * @return DownloadAccountResponse|null
+     * @throws FirebaseAuthException
+     */
     public function listUsers(int $maxResults, string $pageToken) {
         $payload = ['maxResults' => $maxResults];
         if(is_string($pageToken)) {
@@ -153,14 +177,70 @@ class FirebaseUserManager
         }
         $path = '/accounts:batchGet';
         $response = $this->sendRequest('GET', $path, [], ['query' => $payload]);
-        if(!isset($response)) {
-            throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to retrieve users.');
+        $instance = DownloadAccountResponse::build($response);
+        if(empty($instance)) {
+            throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to retrieve users');
         }
 
-        return $response;
+        return $instance;
     }
 
+    public function importUsers(UserImportRequest $request = null): UserImportResult {
+        Validator::isNonNullObject($request);
+        $response = $this->post(
+            '/accounts:batchCreate',
+            $request->getPayload()
+        );
+        $instance = UploadAccountResponse::build($response);
+        if(empty($instance)) {
+            throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to import users');
+        }
 
+        return new UserImportResult($request->getUsersCount(), $instance);
+    }
+
+    public function createSessionCookie(
+        string $idToken = null,
+        SessionCookieOptions $options = null
+    ) {
+        $payload = [
+            'idToken' => $idToken,
+            'validDuration' => $options->getExpiresInSeconds()
+        ];
+        $response = $this->post(':createSessionCookie', $payload);
+        if(!empty($response)) {
+            $cookie = $response['sessionCookie'];
+            if(!empty($cookie)) {
+                return $cookie;
+            }
+        }
+
+        throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to create session cookie');
+    }
+
+    public function getEmailActionLink(
+        EmailLinkType $type,
+        string $email,
+        ActionCodeSettings $settings
+    ) {
+        $payload = [
+            'requestType' => $type,
+            'email' => $email,
+            'returnOobLink' => true
+        ];
+        if(!is_null($settings)) {
+            $payload = array_merge($payload, $settings->getProperties());
+        }
+        $response = $this->post('/accounts:sendOobCode', $payload);
+        if(!empty($response)) {
+            $link = $response['oobLink'];
+            if(!empty($link)) {
+                return $link;
+            }
+        }
+
+        throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to create email action link');
+    }
 
     private function post(string $path, array $content) {
         Validator::isNonEmptyString($path, 'Path must not be null or empty');
@@ -189,9 +269,7 @@ class FirebaseUserManager
             $request = new Request(
                 $method,
                 $path,
-                [
-                    self::CLIENT_VESION_HEADER => $this->clientVersion
-                ],
+                self::FIREBASE_AUTH_HEADERS,
                 $content);
             $response = $this->httpClient->send($request, $requestOptions);
             return json_decode($response->getBody(), true);

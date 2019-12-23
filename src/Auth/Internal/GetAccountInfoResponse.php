@@ -34,8 +34,11 @@ final class GetAccountInfoResponse implements ResponseBuilder
         return $this->users;
     }
 
-    public static function build(array $content)
+    public static function build(array $content = null)
     {
+        if(empty($content)) {
+            return null;
+        }
         $response = new GetAccountInfoResponse();
         $response->kind = $content['kind'];
         $response->users = [];

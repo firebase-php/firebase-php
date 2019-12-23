@@ -171,7 +171,10 @@ class User implements ResponseBuilder
      * @param array $content
      * @return static
      */
-    public static function build(array $content = []) {
+    public static function build(array $content = null) {
+        if(empty($content)) {
+            return null;
+        }
         $user = new static();
         $user->uid = $content['localId'];
         $user->email = $content['email'];

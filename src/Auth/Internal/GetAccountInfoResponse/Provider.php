@@ -87,8 +87,11 @@ class Provider implements ResponseBuilder
         return $this->providerId;
     }
 
-    public static function build(array $content) {
-        $provider = new Provider();
+    public static function build(array $content = null) {
+        if(empty($content)) {
+            return null;
+        }
+        $provider = new static();
         $provider->uid = $content['rawId'];
         $provider->email = $content['email'];
         $provider->phoneNumber = $content['displayName'];

@@ -4,8 +4,8 @@
 namespace Firebase\Auth\UserImportBuilder;
 
 
-use Firebase\Auth\UserRecord\UserMetadata;
-use Firebase\Auth\UserRecord\UserProvider;
+use Firebase\Auth\UserMetadata;
+use Firebase\Auth\UserProvider;
 
 class UserImportRecordBuilder
 {
