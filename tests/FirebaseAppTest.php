@@ -11,6 +11,11 @@ use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Firebase\Tests\Testing\TestUtils;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google\Auth\CredentialsLoader;
+use Google\Auth\HttpHandler\HttpHandlerFactory;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
@@ -154,25 +159,6 @@ class FirebaseAppTest extends TestCase
         $this->assertRegExp($pattern, (string)$app);
     }
 
-    public function testInvokeAfterDeleteThrows() {
-        $this->markTestIncomplete();
-        $allowedToCallAfterDelete = [
-            'delete',
-            'getName',
-            'isDefaultApp',
-            '__toString'
-        ];
-        $app = FirebaseApp::initializeApp(self::OPTIONS(), 'myApp');
-        $app->delete();
-        $methods = get_class_methods($app);
-        foreach($methods as $method) {
-            $refMethod = new \ReflectionMethod(FirebaseApp::class, $method);
-            if($refMethod->isPublic() && !$refMethod->isStatic()) {
-
-            }
-        }
-    }
-
     public function testMissingInit() {
         $this->expectException(FirebaseException::class);
         FirebaseApp::getInstance();
@@ -199,14 +185,6 @@ class FirebaseAppTest extends TestCase
         $this->assertTrue(ImplFirebaseTrampolines::isDefaultApp($app));
     }
 
-    public function testTokenCaching() {
-        $this->markTestIncomplete();
-    }
-
-    public function testTokenForceRefresh() {
-        $this->markTestIncomplete();
-    }
-
     public function testAppWithAuthVariableOverrides() {
         $authVariableOverrides = ['uid' => 'uid1'];
         $options = (new FirebaseOptionsBuilder(self::getMockCredentialOptions()))
@@ -218,9 +196,107 @@ class FirebaseAppTest extends TestCase
         $this->assertTrue(!empty($token));
     }
 
-    public function testEmptyFirebaseConfigFile() {
-        $this->expectException(FirebaseException::class);
+    public function testEmptyFirebaseConfigString() {
+        $this->setFirebaseConfigEnvironmentVariable('');
+        $app = FirebaseApp::initializeApp();
+        $this->assertNull($app->getOptions()->getProjectId());
+        $this->assertNull($app->getOptions()->getStorageBucket());
+        $this->assertNull($app->getOptions()->getDatabaseUrl());
+        $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
+    }
+
+    public function testEmptyFirebaseConfigJSONObject() {
+        $this->setFirebaseConfigEnvironmentVariable('{}');
+        $app = FirebaseApp::initializeApp();
+        $this->assertNull($app->getOptions()->getProjectId());
+        $this->assertNull($app->getOptions()->getStorageBucket());
+        $this->assertNull($app->getOptions()->getDatabaseUrl());
+        $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
+    }
+
+    public function testInvalidFirebaseConfigFile() {
+        $this->setFirebaseConfigEnvironmentVariable('firebase_config_invalid.json');
+        $this->expectException(\InvalidArgumentException::class);
         FirebaseApp::initializeApp();
+    }
+
+    public function testInvalidFirebaseConfigString() {
+        $this->setFirebaseConfigEnvironmentVariable('{...');
+        $this->expectException(\InvalidArgumentException::class);
+        FirebaseApp::initializeApp();
+    }
+
+    public function testFirebaseConfigMissingFile() {
+        $this->setFirebaseConfigEnvironmentVariable('no_such_this_file_in_the_world.json');
+        $this->expectException(\InvalidArgumentException::class);
+        FirebaseApp::initializeApp();
+    }
+
+    public function testFirebaseConfigFileWithSomeKeysMissing() {
+        $this->setFirebaseConfigEnvironmentVariable('firebase_config_partial.json');
+        $app = FirebaseApp::initializeApp();
+        $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
+        $this->assertEquals('https://hipster-chat.firebaseio.mock', $app->getOptions()->getDatabaseUrl());
+    }
+
+    public function testValidFirebaseConfigFile() {
+        $this->setFirebaseConfigEnvironmentVariable('firebase_config.json');
+        $app = FirebaseApp::initializeApp();
+        $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
+        $this->assertEquals('hipster-chat.appspot.mock', $app->getOptions()->getStorageBucket());
+        $this->assertEquals('https://hipster-chat.firebaseio.mock', $app->getOptions()->getDatabaseUrl());
+        $this->assertEquals('testuser', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
+    }
+
+    public function testEnvironmentVariableIgnored() {
+        $this->setFirebaseConfigEnvironmentVariable('firebase_config.json');
+        $app = FirebaseApp::initializeApp(self::OPTIONS());
+        $this->assertNull($app->getOptions()->getProjectId());
+        $this->assertNull($app->getOptions()->getStorageBucket());
+        $this->assertNull($app->getOptions()->getDatabaseUrl());
+        $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
+    }
+
+    public function testValidFirebaseConfigString() {
+        $this->setFirebaseConfigEnvironmentVariable("{"
+            . "\"databaseAuthVariableOverride\": {"
+            .   "\"uid\":"
+            .   "\"testuser\""
+            . "},"
+            . "\"databaseUrl\": \"https://hipster-chat.firebaseio.mock\","
+            . "\"projectId\": \"hipster-chat-mock\","
+            . "\"storageBucket\": \"hipster-chat.appspot.mock\""
+            . "}");
+        $app = FirebaseApp::initializeApp();
+        $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
+        $this->assertEquals('hipster-chat.appspot.mock', $app->getOptions()->getStorageBucket());
+        $this->assertEquals('https://hipster-chat.firebaseio.mock', $app->getOptions()->getDatabaseUrl());
+        $this->assertEquals('testuser', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
+    }
+
+    public function testFirebaseConfigFileIgnoresInvalidKey() {
+        $this->setFirebaseConfigEnvironmentVariable('firebase_config_invalid_key.json');
+        $app = FirebaseApp::initializeApp();
+        $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
+    }
+
+    public function testFirebaseConfigStringIgnoresInvalidKey() {
+        $this->setFirebaseConfigEnvironmentVariable("{"
+            . "\"databaseUareL\": \"https://hipster-chat.firebaseio.mock\","
+            . "\"projectId\": \"hipster-chat-mock\""
+            . "}");
+        $app = FirebaseApp::initializeApp();
+        $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
+    }
+
+    public function testFirebaseExceptionNullDetail() {
+        $this->expectException(InvalidArgumentException::class);
+        new FirebaseException(null);
+    }
+
+    public function testFirebaseExceptionEmptyDetail() {
+        $this->expectException(InvalidArgumentException::class);
+        new FirebaseException('');
     }
 
     private static function setFirebaseConfigEnvironmentVariable(string $configJson) {
@@ -228,7 +304,8 @@ class FirebaseAppTest extends TestCase
         if(empty($configJson) || $configJson[0] === '{') {
             $configValue = $configJson;
         } else {
-            $configValue = file_get_contents(realpath(__DIR__ . '/fixtures/' . $configJson));
+            $configValueParts = pathinfo(__DIR__ . '/fixtures/' . $configJson);
+            $configValue = sprintf('%s/%s', $configValueParts['dirname'], $configValueParts['basename']);
         }
         $envs = [FirebaseApp::FIREBASE_CONFIG_ENV_VAR => $configValue];
         TestUtils::setEnvironmentVariables($envs);
@@ -236,7 +313,7 @@ class FirebaseAppTest extends TestCase
 
     private static function getMockCredentialOptions() {
         return (new FirebaseOptionsBuilder())
-            ->setCredentials(ApplicationDefaultCredentials::getCredentials(['scope/1']))
+            ->setCredentials(ApplicationDefaultCredentials::getCredentials([]))
             ->build();
     }
 }

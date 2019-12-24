@@ -7,6 +7,11 @@ namespace Firebase\Tests\Testing;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google\Auth\CredentialsLoader;
+use Google\Auth\HttpHandler\HttpHandlerFactory;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Token;
 
@@ -70,6 +75,19 @@ class TestUtils
         self::setEnvironmentVariables([
             'GOOGLE_APPLICATION_CREDENTIALS' => $serviceAccountPath
         ]);
-        return ApplicationDefaultCredentials::getCredentials();
+        return ApplicationDefaultCredentials::getCredentials(null, self::getMockHandler());
+    }
+
+    public static function getMockHandler() {
+        $mock = new MockHandler([
+            new Response(
+                200,
+                [],
+                json_encode([
+                    'access_token' => self::TEST_ADC_ACCESS_TOKEN,
+                ])
+            )
+        ]);
+        return HttpHandlerFactory::build(new Client(['handler' => HandlerStack::create($mock)]));
     }
 }

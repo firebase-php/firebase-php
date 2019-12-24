@@ -76,10 +76,11 @@ final class FirebaseOptions
         $this->projectId = $builder->getProjectId();
         if(!empty($builder->getStorageBucket())) {
             preg_match('/^gs:\/\//', $builder->getStorageBucket(), $matches);
-            Validator::checkArgument(!empty($matches), 'StorageBucket must not include "gs://" prefix.');
+            Validator::checkArgument(empty($matches), 'StorageBucket must not include "gs://" prefix.');
         }
 
         $this->serviceAccountId = empty($builder->getServiceAccountId()) ? null : $builder->getServiceAccountId();
+        $this->storageBucket = $builder->getStorageBucket();
         Validator::checkArgument($builder->getConnectTimeout() >= 0);
         $this->connectTimeout = $builder->getConnectTimeout();
         Validator::checkArgument($builder->getReadTimeout() >= 0);

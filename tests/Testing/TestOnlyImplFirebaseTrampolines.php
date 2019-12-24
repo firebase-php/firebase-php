@@ -20,7 +20,7 @@ final class TestOnlyImplFirebaseTrampolines
     public static function getToken(FirebaseApp $app = null, bool $forceRefresh = false) {
         /** @var ServiceAccountCredentials $credentials */
         $credentials = $app->getOptions()->getCredentials();
-        $token = $credentials->getLastReceivedToken();
+        $token = $credentials->fetchAuthToken(TestUtils::getMockHandler());
         return $token['access_token'];
     }
 

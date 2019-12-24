@@ -3,6 +3,7 @@
 
 namespace Firebase;
 
+use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 
 class FirebaseOptionsBuilder
@@ -73,7 +74,7 @@ class FirebaseOptionsBuilder
      * @param array $databaseAuthVariableOverride
      * @return FirebaseOptionsBuilder
      */
-    public function setDatabaseAuthVariableOverride(array $databaseAuthVariableOverride): FirebaseOptionsBuilder
+    public function setDatabaseAuthVariableOverride(?array $databaseAuthVariableOverride): FirebaseOptionsBuilder
     {
         $this->databaseAuthVariableOverride = $databaseAuthVariableOverride;
         return $this;
@@ -91,7 +92,7 @@ class FirebaseOptionsBuilder
      * @param string $databaseUrl
      * @return FirebaseOptionsBuilder
      */
-    public function setDatabaseUrl(string $databaseUrl): FirebaseOptionsBuilder
+    public function setDatabaseUrl(?string $databaseUrl): FirebaseOptionsBuilder
     {
         $this->databaseUrl = $databaseUrl;
         return $this;
@@ -109,8 +110,9 @@ class FirebaseOptionsBuilder
      * @param string $projectId
      * @return FirebaseOptionsBuilder
      */
-    public function setProjectId(string $projectId): FirebaseOptionsBuilder
+    public function setProjectId(?string $projectId): FirebaseOptionsBuilder
     {
+        Validator::isNonEmptyString($projectId, 'Project ID must not be null or empty');
         $this->projectId = $projectId;
         return $this;
     }
@@ -127,8 +129,9 @@ class FirebaseOptionsBuilder
      * @param string $storageBucket
      * @return FirebaseOptionsBuilder
      */
-    public function setStorageBucket(string $storageBucket): FirebaseOptionsBuilder
+    public function setStorageBucket(?string $storageBucket): FirebaseOptionsBuilder
     {
+        Validator::isNonEmptyString($storageBucket, 'Storage bucket must not be null or empty');
         $this->storageBucket = $storageBucket;
         return $this;
     }
@@ -145,8 +148,9 @@ class FirebaseOptionsBuilder
      * @param string $serviceAccountId
      * @return FirebaseOptionsBuilder
      */
-    public function setServiceAccountId(string $serviceAccountId): FirebaseOptionsBuilder
+    public function setServiceAccountId(?string $serviceAccountId): FirebaseOptionsBuilder
     {
+        Validator::isNonEmptyString($serviceAccountId, 'Service account ID must not be null or empty');
         $this->serviceAccountId = $serviceAccountId;
         return $this;
     }
@@ -165,6 +169,7 @@ class FirebaseOptionsBuilder
      */
     public function setCredentials($credentials)
     {
+        Validator::isNonNullObject($credentials);
         $this->credentials = $credentials;
         return $this;
     }

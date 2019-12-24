@@ -87,7 +87,7 @@ class FirebaseApp {
             }
         }
         if(is_null($options)) {
-            $options = self::getOptionsFromEnvVar();
+            $options = self::getOptionsFromEnvironment();
         }
         $firebaseApp = new FirebaseApp($normalizedName, $options);
         self::$instances[$normalizedName] = $firebaseApp;
@@ -111,26 +111,39 @@ class FirebaseApp {
         return trim(Validator::isNonNullObject($name));
     }
 
-    private static function getOptionsFromEnvVar(): FirebaseOptions {
+    private static function getOptionsFromEnvironment(): FirebaseOptions {
         $defaultConfig = getenv(self::FIREBASE_CONFIG_ENV_VAR);
         if(empty($defaultConfig)) {
             return (new FirebaseOptionsBuilder())
                 ->setCredentials(FirebaseOptions::getApplicationDefaultCredentials())
                 ->build();
         }
-        $contents = $defaultConfig[0] === '{' ? $defaultConfig : file_get_contents($defaultConfig);
+        $contents = null;
+        if($defaultConfig[0] === '{') {
+            $contents = $defaultConfig;
+        } elseif(file_exists($defaultConfig)) {
+            $contents = file_get_contents($defaultConfig);
+        }
         if(!$contents) {
-            throw new FirebaseException('Failed to parse app options file.');
+            throw new \InvalidArgumentException('Failed to parse app options file.');
         }
         $contentArray = json_decode($contents, true);
+
+        if(!is_array($contentArray)) {
+            throw new \InvalidArgumentException();
+        }
         $builder = new FirebaseOptionsBuilder();
         $builder
-            ->setDatabaseAuthVariableOverride($contentArray['databaseAuthVariableOverride'])
-            ->setDatabaseUrl($contentArray['databaseURL'])
-            ->setProjectId($contentArray['projectId'])
-            ->setStorageBucket($contentArray['storageBucket'])
-            ->setConnectTimeout($contentArray['connectTimeout'])
-            ->setReadTimeout($contentArray['readTimeout']);
+            ->setDatabaseAuthVariableOverride($contentArray['databaseAuthVariableOverride'] ?? null)
+            ->setDatabaseUrl($contentArray['databaseUrl'] ?? null)
+            ->setConnectTimeout($contentArray['connectTimeout'] ?? 0)
+            ->setReadTimeout($contentArray['readTimeout'] ?? 0);
+        if(isset($contentArray['projectId'])) {
+            $builder->setProjectId($contentArray['projectId']);
+        }
+        if(isset($contentArray['storageBucket'])) {
+            $builder->setStorageBucket($contentArray['storageBucket']);
+        }
         return $builder->setCredentials(FirebaseOptions::getApplicationDefaultCredentials())->build();
     }
 
