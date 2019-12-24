@@ -2,9 +2,6 @@
 
 namespace Firebase;
 
-use Firebase\Auth\FirebaseAuth;
-use Firebase\Auth\FirebaseAuthBuilder;
-use Firebase\Auth\FirebaseTokenUtils;
 use Firebase\Internal\FirebaseService;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
@@ -39,7 +36,7 @@ class FirebaseApp {
     /**
      * @var FirebaseService[]
      */
-    private $services;
+    private $services = [];
 
     public function __construct(string $name, FirebaseOptions $options)
     {
@@ -51,10 +48,7 @@ class FirebaseApp {
         return self::$instances;
     }
 
-    public static function getInstance(string $name = null) {
-        if(is_null($name)) {
-            $name = self::DEFAULT_APP_NAME;
-        }
+    public static function getInstance(?string $name = self::DEFAULT_APP_NAME) {
         if(isset(self::$instances[$name])) {
             return self::$instances[$name];
         }
@@ -67,10 +61,10 @@ class FirebaseApp {
             $availableAppNamesMessage = sprintf('Available app names: %s', implode(', ', $availableAppNames));
         }
         $errorMessage = sprintf('FirebaseApp with name %s does not exist. %s', $name, $availableAppNamesMessage);
-        throw new \Exception($errorMessage);
+        throw new FirebaseException($errorMessage);
     }
 
-    public static function initializeApp(FirebaseOptions $options = null, string $name = null) {
+    public static function initializeApp(?FirebaseOptions $options = null, ?string $name = self::DEFAULT_APP_NAME) {
         $normalizedName = self::normalize($name);
         Validator::checkArgument(
             !in_array($normalizedName, self::$instances),
@@ -113,7 +107,7 @@ class FirebaseApp {
         return $allAppNames;
     }
 
-    private static function normalize(string $name) {
+    private static function normalize(string $name = null) {
         return trim(Validator::isNonNullObject($name));
     }
 
@@ -162,6 +156,14 @@ class FirebaseApp {
         $projectId = $this->getOptions()->getProjectId();
 
         if(empty($projectId)) {
+            $credentials = $this->getOptions()->getCredentials();
+            if($credentials instanceof ServiceAccountCredentials) {
+                $json = $credentials::fromEnv();
+                $projectId = $json['project_id'];
+            }
+        }
+
+        if(empty($projectId)) {
             $projectId = getenv('GOOGLE_CLOUD_PROJECT');
         }
         if(empty($projectId)) {
@@ -201,5 +203,17 @@ class FirebaseApp {
         Validator::isNonNullObject($service);
         Validator::checkArgument(!isset($this->services[$service->getId()]));
         $this->services[$service->getId()] = $service;
+    }
+
+    static function clearInstancesForTest() {
+        foreach (self::$instances as $app) {
+            $app->delete();
+        }
+        self::$instances = [];
+    }
+
+    public function __toString() {
+        $className = (new \ReflectionClass($this))->getShortName();
+        return sprintf('%s{name=%s}', $className, $this->name);
     }
 }

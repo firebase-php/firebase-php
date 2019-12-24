@@ -133,6 +133,10 @@ class Validator
         return Validation::createValidator();
     }
 
+    /**
+     * @param ConstraintViolationListInterface $violations
+     * @param string|null $message
+     */
     private static function check(ConstraintViolationListInterface $violations, string $message = null) {
         if(count($violations) > 0) {
             throw new InvalidArgumentException($message);

@@ -4,16 +4,7 @@
 namespace Firebase\Auth\Internal;
 
 
-use Firebase\Auth\Credential\Certificate;
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
-use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Signature;
-use Lcobucci\JWT\Signer\Key;
-use Lcobucci\JWT\Signer\Rsa\Sha256;
 
 class ServiceAccountSigner implements CryptoSigner
 {

@@ -7,7 +7,6 @@ namespace Firebase\Auth\Internal;
 use Firebase\Auth\Credential\CredentialHelpers;
 use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
-use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;

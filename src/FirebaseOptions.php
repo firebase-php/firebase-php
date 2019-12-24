@@ -6,7 +6,6 @@ namespace Firebase;
 
 use Firebase\Util\Validator\Validator;
 use Google\Auth\ApplicationDefaultCredentials;
-use Google\Auth\Credentials\IAMCredentials;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 
 final class FirebaseOptions
@@ -94,7 +93,7 @@ final class FirebaseOptions
     /**
      * @return string
      */
-    public function getDatabaseUrl(): string
+    public function getDatabaseUrl(): ?string
     {
         return $this->databaseUrl;
     }
@@ -102,7 +101,7 @@ final class FirebaseOptions
     /**
      * @return string
      */
-    public function getStorageBucket(): string
+    public function getStorageBucket(): ?string
     {
         return $this->storageBucket;
     }
@@ -118,7 +117,7 @@ final class FirebaseOptions
     /**
      * @return array
      */
-    public function getDatabaseAuthVariableOverride(): array
+    public function getDatabaseAuthVariableOverride(): ?array
     {
         return $this->databaseAuthVariableOverride;
     }
@@ -126,7 +125,7 @@ final class FirebaseOptions
     /**
      * @return string
      */
-    public function getProjectId(): string
+    public function getProjectId(): ?string
     {
         return $this->projectId;
     }
@@ -134,7 +133,7 @@ final class FirebaseOptions
     /**
      * @return string
      */
-    public function getServiceAccountId(): string
+    public function getServiceAccountId(): ?string
     {
         return $this->serviceAccountId;
     }
@@ -142,7 +141,7 @@ final class FirebaseOptions
     /**
      * @return int
      */
-    public function getConnectTimeout(): int
+    public function getConnectTimeout(): ?int
     {
         return $this->connectTimeout;
     }
@@ -150,7 +149,7 @@ final class FirebaseOptions
     /**
      * @return int
      */
-    public function getReadTimeout(): int
+    public function getReadTimeout(): ?int
     {
         return $this->readTimeout;
     }
