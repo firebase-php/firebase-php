@@ -1,12 +1,10 @@
 <?php
 
 
-namespace Firebase\Auth\UserImportBuilder;
+namespace Firebase\Auth;
 
 
-use Firebase\Auth\UserRecord;
-
-class UserImportRecord
+final class ImportUserRecord
 {
     /**
      * @var array
@@ -34,17 +32,11 @@ class UserImportRecord
         return $copy;
     }
 
-    /**
-     * @param array $properties
-     * @return UserImportRecord
-     */
-    public function setProperties(array $properties): UserImportRecord
-    {
-        $this->properties = $properties;
-        return $this;
-    }
-
     public function hasPassword() {
         return isset($this->properties['passwordHash']);
+    }
+
+    public static function builder() {
+        return new ImportUserRecordBuilder();
     }
 }

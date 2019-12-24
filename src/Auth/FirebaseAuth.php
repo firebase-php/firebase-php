@@ -6,13 +6,11 @@ namespace Firebase\Auth;
 use Carbon\Carbon;
 use Firebase\Auth\Internal\EmailLinkType;
 use Firebase\Auth\Internal\FirebaseTokenFactory;
-use Firebase\Auth\UserImportBuilder\UserImportRecord;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
-use Symfony\Component\Validator\Constraints\Valid;
 
 class FirebaseAuth
 {
@@ -179,7 +177,7 @@ class FirebaseAuth
     }
 
     /**
-     * @param UserImportRecord[]|null $users
+     * @param ImportUserRecord[]|null $users
      * @param UserImportOptions|null $options
      * @return UserImportResult
      * @throws FirebaseAuthException

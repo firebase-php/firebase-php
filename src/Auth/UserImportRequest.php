@@ -4,7 +4,6 @@
 namespace Firebase\Auth;
 
 
-use Firebase\Auth\UserImportBuilder\UserImportRecord;
 use Firebase\Util\Validator\Validator;
 
 class UserImportRequest
@@ -15,7 +14,7 @@ class UserImportRequest
 
     /**
      * UserImportRequest constructor.
-     * @param UserImportRecord[]|null $users
+     * @param ImportUserRecord[]|null $users
      * @param UserImportOptions|null $options
      */
     public function __construct(array $users = null, UserImportOptions $options = null)
