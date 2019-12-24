@@ -3,8 +3,8 @@
 
 namespace Firebase\Auth;
 
+use Firebase\Util\Validator\Validator;
 use Lcobucci\JWT\Signer;
-use Respect\Validation\Validator as v;
 
 abstract class UserImportHash implements Signer
 {
@@ -12,7 +12,7 @@ abstract class UserImportHash implements Signer
 
     public function __construct(string $name)
     {
-        v::stringType()->notEmpty()->assert($name);
+        Validator::isNonEmptyString($name);
         $this->name = $name;
     }
 

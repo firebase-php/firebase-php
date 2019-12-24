@@ -4,11 +4,12 @@
 namespace Firebase\Auth;
 
 use Firebase\Util\Validator\Validator;
+use Lcobucci\JWT\Signer;
 
 final class UserImportOptions
 {
     /**
-     * @var UserImportHash
+     * @var Signer
      */
     private $hash;
 
@@ -18,7 +19,7 @@ final class UserImportOptions
         $this->hash = $builder->getHash();
     }
 
-    public static function withHash(UserImportHash $hash) {
+    public static function withHash(?Signer $hash = null) {
         Validator::isNonNullObject($hash);
         return self::builder()->setHash($hash)->build();
     }
@@ -28,14 +29,17 @@ final class UserImportOptions
     }
 
     /**
-     * @return UserImportHash
+     * @return Signer
      */
-    public function getHash(): UserImportHash
+    public function getHash(): ?Signer
     {
         return $this->hash;
     }
 
     public function getProperties() {
-        return $this->hash->getProperties();
+        return [
+            'hashAlgorithm' => $this->hash->getAlgorithmId(),
+            'signerKey' => base64_encode($this->hash->getAlgorithmId())
+        ];
     }
 }
