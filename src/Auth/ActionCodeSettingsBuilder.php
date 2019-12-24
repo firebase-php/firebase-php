@@ -1,12 +1,10 @@
 <?php
 
 
-namespace Firebase\Auth\ActionCodeSettings;
+namespace Firebase\Auth;
 
 
-use Firebase\Auth\ActionCodeSettings;
-
-final class Builder
+final class ActionCodeSettingsBuilder
 {
     /**
      * @var string
@@ -53,9 +51,9 @@ final class Builder
 
     /**
      * @param string $url
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setUrl(string $url): Builder
+    public function setUrl(string $url): ActionCodeSettingsBuilder
     {
         $this->url = $url;
         return $this;
@@ -71,9 +69,9 @@ final class Builder
 
     /**
      * @param bool $handleCodeInApp
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setHandleCodeInApp(bool $handleCodeInApp): Builder
+    public function setHandleCodeInApp(bool $handleCodeInApp): ActionCodeSettingsBuilder
     {
         $this->handleCodeInApp = $handleCodeInApp;
         return $this;
@@ -89,9 +87,9 @@ final class Builder
 
     /**
      * @param string $dynamicLinkDomain
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setDynamicLinkDomain(string $dynamicLinkDomain): Builder
+    public function setDynamicLinkDomain(string $dynamicLinkDomain): ActionCodeSettingsBuilder
     {
         $this->dynamicLinkDomain = $dynamicLinkDomain;
         return $this;
@@ -107,9 +105,9 @@ final class Builder
 
     /**
      * @param string $iOSBundleId
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setIosBundleId(string $iOSBundleId): Builder
+    public function setIosBundleId(string $iOSBundleId): ActionCodeSettingsBuilder
     {
         $this->iOSBundleId = $iOSBundleId;
         return $this;
@@ -125,9 +123,9 @@ final class Builder
 
     /**
      * @param string $androidPackageName
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setAndroidPackageName(string $androidPackageName): Builder
+    public function setAndroidPackageName(string $androidPackageName): ActionCodeSettingsBuilder
     {
         $this->androidPackageName = $androidPackageName;
         return $this;
@@ -143,9 +141,9 @@ final class Builder
 
     /**
      * @param string $androidMinimumVersion
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setAndroidMinimumVersion(string $androidMinimumVersion): Builder
+    public function setAndroidMinimumVersion(string $androidMinimumVersion): ActionCodeSettingsBuilder
     {
         $this->androidMinimumVersion = $androidMinimumVersion;
         return $this;
@@ -161,9 +159,9 @@ final class Builder
 
     /**
      * @param bool $androidInstallApp
-     * @return Builder
+     * @return ActionCodeSettingsBuilder
      */
-    public function setAndroidInstallApp(bool $androidInstallApp): Builder
+    public function setAndroidInstallApp(bool $androidInstallApp): ActionCodeSettingsBuilder
     {
         $this->androidInstallApp = $androidInstallApp;
         return $this;

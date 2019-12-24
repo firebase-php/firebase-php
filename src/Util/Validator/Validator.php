@@ -40,15 +40,22 @@ class Validator
         return !empty($matches);
     }
 
-    public static function isNonEmptyString($value, $message = null) {
-        self::isNonEmptyArray($value, $message);
-        return $value;
+    public static function isNonEmptyString($value, $message = null, $throwable = true) {
+        return self::isNonEmptyArray($value, $message, $throwable);
     }
 
-    public static function isNonEmptyArray($value, $message = null) {
+    public static function isNonEmptyArray($value, $message = null, $throwable = true) {
         $rule = new NotBlank(is_null($message) ? [] : ['message' => $message]);
         $violations = self::validator()->validate($value, [$rule]);
-        self::check($violations, $rule->message);
+        try {
+            self::check($violations, $rule->message);
+        } catch (\Exception $e) {
+            if($throwable) {
+                throw $e;
+            } else {
+                return false;
+            }
+        }
         return $value;
     }
 

@@ -3,8 +3,6 @@
 
 namespace Firebase\Auth;
 
-
-use Firebase\Auth\ActionCodeSettings\Builder;
 use Firebase\Util\Error\AuthClientErrorCode;
 use Firebase\Util\Error\ErrorInfo;
 use Firebase\Util\Error\FirebaseAuthError;
@@ -14,34 +12,25 @@ class ActionCodeSettings
 {
     private $properties;
 
-    public function __construct(Builder $builder)
+    public function __construct(ActionCodeSettingsBuilder $builder)
     {
-        if(!Validator::isURL($builder->getUrl())) {
-            $error = AuthClientErrorCode::INVALID_CONTINUE_URI;
-            throw new FirebaseAuthError(
-                new ErrorInfo($error['code'], $error['message'])
-            );
-        }
-        if($builder->isAndroidInstallApp() || Validator::isNonEmptyString($builder->getAndroidMinimumVersion())) {
-            $error = AuthClientErrorCode::INVALID_ARGUMENT;
-            throw new FirebaseAuthError(
-                new ErrorInfo($error['code']),
-                'Android package name is required when specifying other Android settings'
-            );
+        Validator::isURL($builder->getUrl(), 'URL');
+        if($builder->isAndroidInstallApp() || Validator::isNonEmptyString($builder->getAndroidMinimumVersion(), null, false)) {
+            Validator::isNonEmptyString($builder->getAndroidPackageName(), 'Android package name is required when specifying other Android settings');
         }
         $properties = [
             'continueUrl' => $builder->getUrl(),
             'canHandleCodeInApp' => $builder->isHandleCodeInApp()
         ];
-        if(Validator::isNonEmptyString($builder->getDynamicLinkDomain())) {
+        if(Validator::isNonEmptyString($builder->getDynamicLinkDomain(), null, false)) {
             $properties['dynamicLinkDomain'] = $builder->getDynamicLinkDomain();
         }
-        if(Validator::isNonEmptyString($builder->getIOSBundleId())) {
+        if(Validator::isNonEmptyString($builder->getIOSBundleId(), null, false)) {
             $properties['iOSBundleId'] = $builder->getIOSBundleId();
         }
-        if(Validator::isNonEmptyString($builder->getAndroidPackageName())) {
+        if(Validator::isNonEmptyString($builder->getAndroidPackageName(), null, false)) {
             $properties['androidPackageName'] = $builder->getAndroidPackageName();
-            if(Validator::isNonEmptyString($builder->getAndroidMinimumVersion())) {
+            if(Validator::isNonEmptyString($builder->getAndroidMinimumVersion(), null, false)) {
                 $properties['androidMinimumVersion'] = $builder->getAndroidMinimumVersion();
             }
             if($builder->isAndroidInstallApp()) {
@@ -59,7 +48,7 @@ class ActionCodeSettings
         return $this->properties;
     }
 
-    public static function builder(): Builder {
-        return new Builder();
+    public static function builder(): ActionCodeSettingsBuilder {
+        return new ActionCodeSettingsBuilder();
     }
 }
