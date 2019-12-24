@@ -1,10 +1,8 @@
 <?php
 
 
-namespace Firebase\Auth\UserProvider;
+namespace Firebase\Auth;
 
-
-use Firebase\Auth\UserProvider;
 
 final class UserProviderBuilder
 {
@@ -37,7 +35,7 @@ final class UserProviderBuilder
      * @param string $uid
      * @return UserProviderBuilder
      */
-    public function setUid(string $uid): UserProviderBuilder
+    public function setUid(?string $uid = null): UserProviderBuilder
     {
         $this->uid = $uid;
         return $this;
@@ -47,7 +45,7 @@ final class UserProviderBuilder
      * @param string $displayName
      * @return UserProviderBuilder
      */
-    public function setDisplayName(string $displayName): UserProviderBuilder
+    public function setDisplayName(?string $displayName = null): UserProviderBuilder
     {
         $this->displayName = $displayName;
         return $this;
@@ -57,7 +55,7 @@ final class UserProviderBuilder
      * @param string $email
      * @return UserProviderBuilder
      */
-    public function setEmail(string $email): UserProviderBuilder
+    public function setEmail(?string $email = null): UserProviderBuilder
     {
         $this->email = $email;
         return $this;
@@ -67,7 +65,7 @@ final class UserProviderBuilder
      * @param string $photoUrl
      * @return UserProviderBuilder
      */
-    public function setPhotoUrl(string $photoUrl): UserProviderBuilder
+    public function setPhotoUrl(?string $photoUrl = null): UserProviderBuilder
     {
         $this->photoUrl = $photoUrl;
         return $this;
@@ -77,7 +75,7 @@ final class UserProviderBuilder
      * @param string $providerId
      * @return UserProviderBuilder
      */
-    public function setProviderId(string $providerId): UserProviderBuilder
+    public function setProviderId(?string $providerId = null): UserProviderBuilder
     {
         $this->providerId = $providerId;
         return $this;
@@ -86,7 +84,7 @@ final class UserProviderBuilder
     /**
      * @return string
      */
-    public function getUid(): string
+    public function getUid(): ?string
     {
         return $this->uid;
     }
@@ -94,7 +92,7 @@ final class UserProviderBuilder
     /**
      * @return string
      */
-    public function getDisplayName(): string
+    public function getDisplayName(): ?string
     {
         return $this->displayName;
     }
@@ -102,7 +100,7 @@ final class UserProviderBuilder
     /**
      * @return string
      */
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
@@ -110,7 +108,7 @@ final class UserProviderBuilder
     /**
      * @return string
      */
-    public function getPhotoUrl(): string
+    public function getPhotoUrl(): ?string
     {
         return $this->photoUrl;
     }
@@ -118,7 +116,7 @@ final class UserProviderBuilder
     /**
      * @return string
      */
-    public function getProviderId(): string
+    public function getProviderId(): ?string
     {
         return $this->providerId;
     }
