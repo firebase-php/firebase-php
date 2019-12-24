@@ -3,16 +3,8 @@
 
 namespace Firebase\Auth;
 
-
-use Carbon\Carbon;
 use Firebase\Auth\Internal\GetAccountInfoResponse\User;
-use Firebase\Auth\UserRecord\UserMetadata;
-use Firebase\Auth\UserRecord\UserProvider;
 use Firebase\Util\Validator\Validator;
-use Respect\Validation\Validator as v;
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
 
 class UserRecord implements UserInfo
 {

@@ -3,8 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
-use Firebase\Auth\Credential\CredentialHelpers;
 use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
 use Google\Auth\Credentials\ServiceAccountCredentials;

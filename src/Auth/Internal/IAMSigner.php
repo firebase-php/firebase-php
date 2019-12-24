@@ -3,10 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
 use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;

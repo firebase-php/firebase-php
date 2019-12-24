@@ -3,9 +3,6 @@
 
 namespace Firebase\Auth;
 
-use Firebase\Util\Error\AuthClientErrorCode;
-use Firebase\Util\Error\ErrorInfo;
-use Firebase\Util\Error\FirebaseAuthError;
 use Firebase\Util\Validator\Validator;
 
 class ActionCodeSettings
