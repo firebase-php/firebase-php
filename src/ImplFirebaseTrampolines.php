@@ -4,6 +4,8 @@
 namespace Firebase;
 
 
+use Firebase\Internal\FirebaseService;
+
 class ImplFirebaseTrampolines
 {
     private function __construct() {}
@@ -18,5 +20,19 @@ class ImplFirebaseTrampolines
 
     public static function isDefaultApp(FirebaseApp $app) {
         return $app->isDefaultApp();
+    }
+
+    public static function getService(FirebaseApp $app, string $id, string $class) {
+        $service = $app->getService($id);
+        if(is_null($service)) {
+            return null;
+        }
+        settype($service, $class);
+        return $service;
+    }
+
+    public static function addService(FirebaseApp $app, FirebaseService $service) {
+        $app->addService($service);
+        return $service;
     }
 }

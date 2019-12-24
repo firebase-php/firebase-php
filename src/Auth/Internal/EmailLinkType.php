@@ -10,7 +10,7 @@ use MyCLabs\Enum\Enum;
  * Class EmailLinkType
  * @package Firebase\Auth\Internal
  *
- * @method static EmailLinkType VIEW()
+ * @method static EmailLinkType EMAIL_SIGNIN()
  * @method static EmailLinkType VERIFY_EMAIL()
  * @method static EmailLinkType PASSWORD_RESET()
  */

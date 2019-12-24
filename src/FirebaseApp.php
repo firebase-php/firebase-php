@@ -2,6 +2,10 @@
 
 namespace Firebase;
 
+use Firebase\Auth\FirebaseAuth;
+use Firebase\Auth\FirebaseAuthBuilder;
+use Firebase\Auth\FirebaseTokenUtils;
+use Firebase\Internal\FirebaseService;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 
@@ -26,6 +30,16 @@ class FirebaseApp {
      * @var FirebaseOptions
      */
     private $options;
+
+    /**
+     * @var bool
+     */
+    private $deleted;
+
+    /**
+     * @var FirebaseService[]
+     */
+    private $services;
 
     public function __construct(string $name, FirebaseOptions $options)
     {
@@ -131,6 +145,7 @@ class FirebaseApp {
      */
     public function getName(): string
     {
+        $this->checkNotDeleted();
         return $this->name;
     }
 
@@ -139,11 +154,12 @@ class FirebaseApp {
      */
     public function getOptions(): FirebaseOptions
     {
+        $this->checkNotDeleted();
         return $this->options;
     }
 
     public function getProjectId(): string {
-        $projectId = $this->options->getProjectId();
+        $projectId = $this->getOptions()->getProjectId();
 
         if(empty($projectId)) {
             $projectId = getenv('GOOGLE_CLOUD_PROJECT');
@@ -157,5 +173,33 @@ class FirebaseApp {
 
     public function isDefaultApp() {
         return $this->name === self::DEFAULT_APP_NAME;
+    }
+
+    public function delete() {
+        foreach($this->services as $key => $service) {
+            $this->services[$key]->destroy();
+        }
+        // TODO: Test memory leak
+        $this->services = [];
+        unset(FirebaseApp::$instances[$this->name]);
+    }
+
+    private function checkNotDeleted() {
+        Validator::checkArgument(!$this->deleted, sprintf(
+            'FirebaseApp "%s" was deleted',
+            $this->name
+        ));
+    }
+
+    public function getService(string $id) {
+        Validator::isNonEmptyString($id);
+        return $this->services[$id] ?? null;
+    }
+
+    public function addService(FirebaseService $service = null) {
+        $this->checkNotDeleted();
+        Validator::isNonNullObject($service);
+        Validator::checkArgument(!isset($this->services[$service->getId()]));
+        $this->services[$service->getId()] = $service;
     }
 }
