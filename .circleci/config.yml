@@ -9,7 +9,7 @@ jobs: # a collection of steps
     resource_class: small
     steps: # a set of executable commands
       - checkout
-      - run: sudo apt install -y zlib1g-dev libicu-dev libsodium
+      - run: sudo apt install -y zlib1g-dev libicu-dev libsodium18
       - run: sudo docker-php-ext-configure intl
       - run: sudo docker-php-ext-install zip intl sodium
       - run: sudo pecl install grpc xdebug
