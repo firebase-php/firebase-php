@@ -24,6 +24,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Lcobucci\JWT\Builder;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FirebaseTokenVerifierImplTest extends TestCase
 {
@@ -169,6 +170,55 @@ class FirebaseTokenVerifierImplTest extends TestCase
             . "complete and valid JWT. See https://test.doc.url for details on how to retrieve "
             . "a test token.");
         $this->tokenVerifier->verifyToken('an.invalid.jwt');
+    }
+
+    public function testBuilderNoPublicKeysManager() {
+        $this->expectException(InvalidArgumentException::class);
+        $this
+            ->fullyPopulatedBuilder()
+            ->setPublicKeysManager(null)
+            ->build();
+    }
+
+    public function testBuilderNoIdTokenVerifier() {
+        $this->expectException(InvalidArgumentException::class);
+        $this
+            ->fullyPopulatedBuilder()
+            ->setIdTokenVerifier(null)
+            ->build();
+    }
+
+    public function testBuilderNoMethodName() {
+        $this->expectException(InvalidArgumentException::class);
+        $this
+            ->fullyPopulatedBuilder()
+            ->setMethod(null)
+            ->build();
+    }
+
+    public function testBuilderNoShortName() {
+        $this->expectException(InvalidArgumentException::class);
+        $this
+            ->fullyPopulatedBuilder()
+            ->setShortName(null)
+            ->build();
+    }
+
+    public function testBuilderNoDocUrl() {
+        $this->expectException(InvalidArgumentException::class);
+        $this
+            ->fullyPopulatedBuilder()
+            ->setDocUrl(null)
+            ->build();
+    }
+
+    private function fullyPopulatedBuilder() {
+        return FirebaseTokenVerifierImpl::builder()
+            ->setShortName('test token')
+            ->setMethod('verifyTestToken()')
+            ->setDocUrl('https://test.doc.url')
+            ->setPublicKeysManager($this->newPublicKeysManager(ServiceAccount::EDITOR()->getCert()))
+            ->setIdTokenVerifier($this->newIdTokenVerifier());
     }
 
     private function newPublicKeysManager(?string $cert, ?ClientInterface $httpClient = null) {

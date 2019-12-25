@@ -41,7 +41,7 @@ class FirebaseTokenVerifierImplBuilder
     /**
      * @return string
      */
-    public function getMethod(): string
+    public function getMethod(): ?string
     {
         return $this->method;
     }
@@ -50,7 +50,7 @@ class FirebaseTokenVerifierImplBuilder
      * @param string $method
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setMethod(string $method): FirebaseTokenVerifierImplBuilder
+    public function setMethod(?string $method): FirebaseTokenVerifierImplBuilder
     {
         $this->method = $method;
         return $this;
@@ -59,7 +59,7 @@ class FirebaseTokenVerifierImplBuilder
     /**
      * @return string
      */
-    public function getShortName(): string
+    public function getShortName(): ?string
     {
         return $this->shortName;
     }
@@ -68,7 +68,7 @@ class FirebaseTokenVerifierImplBuilder
      * @param string $shortName
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setShortName(string $shortName): FirebaseTokenVerifierImplBuilder
+    public function setShortName(?string $shortName): FirebaseTokenVerifierImplBuilder
     {
         $this->shortName = $shortName;
         return $this;
@@ -77,7 +77,7 @@ class FirebaseTokenVerifierImplBuilder
     /**
      * @return string
      */
-    public function getDocUrl(): string
+    public function getDocUrl(): ?string
     {
         return $this->docUrl;
     }
@@ -86,7 +86,7 @@ class FirebaseTokenVerifierImplBuilder
      * @param string $docUrl
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setDocUrl(string $docUrl): FirebaseTokenVerifierImplBuilder
+    public function setDocUrl(?string $docUrl): FirebaseTokenVerifierImplBuilder
     {
         $this->docUrl = $docUrl;
         return $this;
@@ -95,7 +95,7 @@ class FirebaseTokenVerifierImplBuilder
     /**
      * @return GooglePublicKeysManager
      */
-    public function getPublicKeysManager(): GooglePublicKeysManager
+    public function getPublicKeysManager(): ?GooglePublicKeysManager
     {
         return $this->publicKeysManager;
     }
@@ -104,7 +104,7 @@ class FirebaseTokenVerifierImplBuilder
      * @param GooglePublicKeysManager $publicKeysManager
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setPublicKeysManager(GooglePublicKeysManager $publicKeysManager): FirebaseTokenVerifierImplBuilder
+    public function setPublicKeysManager(?GooglePublicKeysManager $publicKeysManager): FirebaseTokenVerifierImplBuilder
     {
         $this->publicKeysManager = $publicKeysManager;
         return $this;
@@ -113,7 +113,7 @@ class FirebaseTokenVerifierImplBuilder
     /**
      * @return IdTokenVerifier
      */
-    public function getIdTokenVerifier(): IdTokenVerifier
+    public function getIdTokenVerifier(): ?IdTokenVerifier
     {
         return $this->idTokenVerifier;
     }
@@ -122,7 +122,7 @@ class FirebaseTokenVerifierImplBuilder
      * @param IdTokenVerifier $idTokenVerifier
      * @return FirebaseTokenVerifierImplBuilder
      */
-    public function setIdTokenVerifier(IdTokenVerifier $idTokenVerifier): FirebaseTokenVerifierImplBuilder
+    public function setIdTokenVerifier(?IdTokenVerifier $idTokenVerifier): FirebaseTokenVerifierImplBuilder
     {
         $this->idTokenVerifier = $idTokenVerifier;
         return $this;
