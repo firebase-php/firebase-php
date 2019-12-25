@@ -10,6 +10,13 @@ jobs: # a collection of steps
     steps: # a set of executable commands
       - checkout
       - run: sudo apt install -y zlib1g-dev libicu-dev
+      - run: |
+          curl -O https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable.tar.gz
+          tar -zxvf libsodium-1.0.18-stable.tar.gz
+          cd ./libsodium-stable
+          ./configure
+          make && make check
+          sudo make install
       - run: sudo docker-php-ext-configure intl
       - run: sudo docker-php-ext-install zip intl
       - run: sudo pecl install grpc xdebug libsodium
