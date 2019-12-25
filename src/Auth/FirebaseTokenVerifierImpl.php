@@ -52,6 +52,10 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      */
     private $idTokenVerifier;
 
+    public static function builder() {
+        return new FirebaseTokenVerifierImplBuilder();
+    }
+
     public function __construct(FirebaseTokenVerifierImplBuilder $builder)
     {
         $this->method = Validator::isNonEmptyString($builder->getMethod(), 'Method name must be specified');
@@ -140,12 +144,12 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         $errorMessage = null;
         if(!$idToken->hasHeader('kid')) {
             $errorMessage = $this->getErrorForTokenWithoutKid($idToken);
-        } elseif ((new Rsa\Sha256())->getAlgorithmId() !== $idToken->getHeader('algo')) {
+        } elseif ((new Rsa\Sha256())->getAlgorithmId() !== $idToken->getHeader('alg')) {
             $errorMessage = sprintf(
                 'Firebase %s has incorrect algorithm. Expected "%s" but got "%s".',
                 $this->shortName,
                 (new Rsa\Sha256())->getAlgorithmId(),
-                $idToken->getHeader('algo')
+                $idToken->getHeader('alg')
             );
         } elseif ($idToken->getClaim('aud') !== $this->idTokenVerifier->getAudience()) {
             $errorMessage = sprintf(
@@ -178,7 +182,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 'Firebase %s has "sub" (subject) claim longer than 128 characters.',
                 $this->shortName
             );
-        } elseif (!$this->verifyTimestamp($idToken)) {
+        } elseif ($this->verifyTimestamp($idToken)) {
             $errorMessage = sprintf(
                 'Fireabse %s has expired or is not yet valid. Get a fresh %s and try again.',
                 $this->shortName,
@@ -233,7 +237,9 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     }
 
     private function verifyTimestamp(Token $idToken) {
-        $currentTimeMillis = Carbon::now()->valueOf();
-        return $idToken->isExpired(Carbon::createFromTimestampMs($currentTimeMillis - $this->idTokenVerifier->getAcceptableTimeSkewSeconds()));
+        $currentTimeSeconds = Carbon::now()->timestamp;
+        $nowLeeway = $currentTimeSeconds - $this->idTokenVerifier->getAcceptableTimeSkewSeconds();
+        $now = Carbon::createFromTimestamp($nowLeeway);
+        return $idToken->isExpired($now);
     }
 }

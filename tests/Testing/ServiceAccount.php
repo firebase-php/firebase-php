@@ -56,15 +56,16 @@ class ServiceAccount
     }
 
     public function getPrivateKey() {
-        $beginMark = "-----BEGIN PRIVATE KEY-----\\n";
-        $endMark = "-----END PRIVATE KEY-----\\n";
-        $substr = substr(
-            $this->json,
-            strpos($this->json, $beginMark) + strlen($beginMark),
-            strpos($this->json, $endMark)
-        );
-
-        return str_replace("\\n", '', $substr);
+//        $beginMark = "-----BEGIN PRIVATE KEY-----\\n";
+//        $endMark = "-----END PRIVATE KEY-----\\n";
+//        $substr = substr(
+//            $this->json,
+//            strpos($this->json, $beginMark) + strlen($beginMark),
+//            strpos($this->json, $endMark)
+//        );
+//
+//        return str_replace("\\n", '', $substr);
+        return json_decode($this->json, true)['private_key'];
     }
 
     /**

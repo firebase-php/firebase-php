@@ -14,7 +14,7 @@ class IdTokenVerifier extends OAuth2 {
      */
     private $acceptableTimeSkewSeconds;
 
-    public function __construct(array $config)
+    public function __construct(?array $config = [])
     {
         parent::__construct($config);
         $this->acceptableTimeSkewSeconds = self::DEFAULT_TIME_SKEW_SECONDS;

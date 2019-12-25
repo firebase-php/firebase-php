@@ -6,6 +6,7 @@ namespace Firebase\Auth\Internal;
 
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\ResponseInterface;
 
@@ -26,6 +27,11 @@ class GooglePublicKeysManager
     private $publicCertsEncodedUrl;
 
     /**
+     * @var ClientInterface
+     */
+    private $httpClient;
+
+    /**
      * @var int
      */
     private $expirationTimeMilliseconds;
@@ -36,12 +42,10 @@ class GooglePublicKeysManager
             return;
         }
         $this->publicCertsEncodedUrl = $builder->getPublicCertsEncodeUrl();
+        $this->httpClient = $builder->getHttpClient();
     }
 
-    /**
-     * @return string[]
-     */
-    public function getPublicKeys()
+    public function getPublicKeys(): array
     {
         $publicKeys = [];
         try {
@@ -56,15 +60,16 @@ class GooglePublicKeysManager
 
     /**
      * @return GooglePublicKeysManager|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function refresh() {
+    public function refresh(): ?GooglePublicKeysManager {
         /** @var GooglePublicKeysManager $instance */
         $instance = new GooglePublicKeysManager();
 
         try {
             $this->publicKeys = [];
             $certRequest = new Request('GET', $this->publicCertsEncodedUrl);
-            $certResponse = (new Client())->send($certRequest);
+            $certResponse = $this->httpClient->send($certRequest);
             $this->expirationTimeMilliseconds = Carbon::now()->valueOf() + $this->getCacheTimeInSec($certResponse) * 1000;
             $certs = json_decode($certResponse->getBody());
 
@@ -117,5 +122,13 @@ class GooglePublicKeysManager
     public function getPublicCertsEncodedUrl(): string
     {
         return $this->publicCertsEncodedUrl;
+    }
+
+    /**
+     * @return ClientInterface
+     */
+    public function getHttpClient(): ClientInterface
+    {
+        return $this->httpClient;
     }
 }
