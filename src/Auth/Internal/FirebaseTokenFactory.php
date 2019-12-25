@@ -21,7 +21,7 @@ class FirebaseTokenFactory
         $this->signer = $signer;
     }
 
-    public function createSignedCustomAuthTokenForUser(string $uid, array $developerClaims = null) {
+    public function createSignedCustomAuthTokenForUser(?string $uid, ?array $developerClaims = null) {
         Validator::isUid($uid);
 
         $header = [
