@@ -7,6 +7,7 @@ namespace Firebase\Tests\Testing;
 use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 
@@ -28,12 +29,15 @@ class TestTokenFactory
         $this->issuer = $issuer;
     }
 
-    public function createToken(?array $header = null, ?array $payload = null) {
+    public function createToken(?array $header = null, ?array $payload = null, ?Signer $signer = null) {
         if(is_null($header)) {
             $header = $this->createHeader();
         }
         if(is_null($payload)) {
             $payload = $this->createTokenPayload();
+        }
+        if(is_null($signer)) {
+            $signer = new Sha256();
         }
         return (new Builder())
             ->issuedBy($payload['iss'] ?? null)
@@ -42,7 +46,7 @@ class TestTokenFactory
             ->expiresAt($payload['exp'] ?? null)
             ->relatedTo($payload['sub'] ?? null)
             ->withHeader('kid', $header['kid'] ?? null)
-            ->getToken(new Sha256(), new Key($this->privateKey));
+            ->getToken($signer, new Key($this->privateKey));
     }
 
     public function createHeader() {

@@ -12,7 +12,6 @@ use Lcobucci\JWT\Signer\Hmac;
 use Lcobucci\JWT\Signer\Rsa;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Token;
-use Lcobucci\JWT\ValidationData;
 
 final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
 {
@@ -142,7 +141,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
 
     private function getErrorIfContentInvalid(Token $idToken) {
         $errorMessage = null;
-        if(!$idToken->hasHeader('kid')) {
+        if(!$idToken->hasHeader('kid') || empty($idToken->getHeader('kid'))) {
             $errorMessage = $this->getErrorForTokenWithoutKid($idToken);
         } elseif ((new Rsa\Sha256())->getAlgorithmId() !== $idToken->getHeader('alg')) {
             $errorMessage = sprintf(
@@ -182,7 +181,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 'Firebase %s has "sub" (subject) claim longer than 128 characters.',
                 $this->shortName
             );
-        } elseif ($this->verifyTimestamp($idToken)) {
+        } elseif (!$this->verifyTimestamp($idToken)) {
             $errorMessage = sprintf(
                 'Fireabse %s has expired or is not yet valid. Get a fresh %s and try again.',
                 $this->shortName,
@@ -215,8 +214,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @return bool
      */
     private function isLegacyCustomToken(Token $idToken): bool {
-        $algorithm = $idToken->getHeader('algo');
-        $v = intval($idToken->getClaim('v'));
+        $algorithm = $idToken->getHeader('alg');
+        $v = intval($idToken->getClaim('v', -1));
         return $algorithm === (new Hmac\Sha256())->getAlgorithmId() && $v === 0 && $this->containsLegacyUidField($idToken);
     }
 
@@ -225,7 +224,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @return bool
      */
     private function containsLegacyUidField(Token $idToken): bool {
-        $dataField = $idToken->getClaim('d');
+        $dataField = $idToken->getClaim('d', false);
         if(is_array($dataField)) {
             return isset($dataField['uid']);
         }
@@ -233,13 +232,17 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     }
 
     private function getProjectIdMatchMessage() {
-        return sprintf('Make sure the %s comes from the same Firebase project as the service account used to  authenticate this SDK.'. $this->shortName);
+        return sprintf('Make sure the %s comes from the same Firebase project as the service account used to  authenticate this SDK.', $this->shortName);
     }
 
     private function verifyTimestamp(Token $idToken) {
+        $iat = intval($idToken->getClaim('iat', -1));
         $currentTimeSeconds = Carbon::now()->timestamp;
+        if($iat === -1 || $iat > $currentTimeSeconds) {
+            return false;
+        }
         $nowLeeway = $currentTimeSeconds - $this->idTokenVerifier->getAcceptableTimeSkewSeconds();
         $now = Carbon::createFromTimestamp($nowLeeway);
-        return $idToken->isExpired($now);
+        return !$idToken->isExpired($now);
     }
 }
