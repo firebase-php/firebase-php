@@ -5,11 +5,15 @@ jobs: # a collection of steps
     docker: # run the steps with Docker
       - image: circleci/php:7.2-node # ...with this image as the primary container; this is where all `steps` will run
     working_directory: ~/projects # directory where steps will run
+    # CircleCI resource
+    resource_class: small
     steps: # a set of executable commands
-      - checkout # special step to check out source code to working directory
-      - run: sudo apt install -y zlib1g-dev
-      - run: sudo docker-php-ext-install zip
-      - run: sudo pecl install grpc
+      - checkout
+      - run: sudo apt install -y zlib1g-dev libicu-dev libsodium-dev g++
+      - run: sudo docker-php-ext-configure intl
+      - run: sudo docker-php-ext-install zip intl sodium
+      - run: sudo pecl install grpc xdebug
+      - run: sudo docker-php-ext-enable grpc xdebug zip sodium
       - run: sudo composer self-update
       - restore_cache: # special step to restore the dependency cache if `composer.lock` does not change
           keys:
@@ -21,4 +25,6 @@ jobs: # a collection of steps
           key: composer-v1-{{ checksum "composer.lock" }}
           paths:
             - vendor
-      - run: ./vendor/bin/phpunit
+      - run:
+          name: Running tests
+          command: ./vendor/bin/phpunit
