@@ -4,6 +4,7 @@ namespace Firebase\Tests\Auth;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseTokenVerifier;
 use Firebase\Auth\FirebaseTokenVerifierImpl;
 use Firebase\Auth\FirebaseTokenVerifierImplBuilder;
@@ -15,9 +16,13 @@ use Firebase\Tests\Testing\IncorrectAlgorithmSigner;
 use Firebase\Tests\Testing\ServiceAccount;
 use Firebase\Tests\Testing\TestTokenFactory;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use Lcobucci\JWT\Builder;
 use PHPUnit\Framework\TestCase;
 
 class FirebaseTokenVerifierImplTest extends TestCase
@@ -60,43 +65,49 @@ class FirebaseTokenVerifierImplTest extends TestCase
 
     public function testVerifyTokenWithoutKeyId() {
         $token = $this->createTokenWithoutKeyId();
-        $this->expectExceptionMessageMatches('/^(Firebase test token has no "kid" claim\.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has no "kid" claim\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
     public function testVerifyTokenFirebaseCustomToken() {
         $token = $this->createCustomToken();
-        $this->expectExceptionMessageMatches('/^(verifyTestToken() expects a test token, but was given a custom token\.)*/');
+        $this->expectExceptionMessageMatches('/^verifyTestToken\(\) expects a test token, but was given a custom token\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
     public function testVerifyTokenIncorrectAudience() {
         $token = $this->createTokenWithIncorrectAudience();
-        $this->expectExceptionMessageMatches('/^(Firebase test token has incorrect "aud" (audience) claim\.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has incorrect "aud" \(audience\) claim\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
     public function testVerifyTokenIncorrectIssuer() {
         $token = $this->createTokenWithIncorrectIssuer();
-        $this->expectExceptionMessageMatches('/^(Firebase test token has incorrect "iss" (issuer) claim\.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has incorrect "iss" \(issuer\) claim\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
+    /**
+     * This test may never happen because $sub will be type cast to string.
+     *
+     * @see Builder::relatedTo()
+     */
     public function testVerifyTokenMissingSubject() {
+        $this->markTestSkipped();
         $token = $this->createTokenWithSubject(null);
-        $this->expectExceptionMessageMatches('/^(Firebase test token has no "sub" (subject) claim.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has no "sub" \(subject\) claim\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
     public function testVerifyTokenEmptySubject() {
         $token = $this->createTokenWithSubject('');
-        $this->expectExceptionMessageMatches('/^(Firebase test token has an empty string "sub" (subject) claim.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has an empty string "sub" \(subject\) claim\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
     public function testVerifyTokenLongSubject() {
         $token = $this->createTokenWithSubject(str_repeat('a', 129));
-        $this->expectExceptionMessageMatches('/^(Firebase test token has "sub" (subject) claim longer than 128 characters.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has "sub" \(subject\) claim longer than 128 characters\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
@@ -106,7 +117,7 @@ class FirebaseTokenVerifierImplTest extends TestCase
             $tenMinutesIntoTheFuture,
             $tenMinutesIntoTheFuture + CarbonInterval::hour(1)->totalSeconds
         );
-        $this->expectExceptionMessageMatches('/^(Firebase test token has expired or is not yet valid.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has expired or is not yet valid\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
@@ -116,21 +127,61 @@ class FirebaseTokenVerifierImplTest extends TestCase
             $twoHoursInPast,
             $twoHoursInPast + CarbonInterval::hour(1)->totalSeconds
         );
-        $this->expectExceptionMessageMatches('/^(Firebase test token has expired or is not yet valid.)*/');
+        $this->expectExceptionMessageMatches('/^Firebase test token has expired or is not yet valid\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
-    private function newPublicKeysManager(?string $cert) {
+    public function testVerifyTokenIncorrectCert() {
+        $token = $this->tokenFactory->createToken();
+        $publicKeysManager = $this->newPublicKeysManager(ServiceAccount::NONE()->getCert());
+        $tokenVerifier = $this->newTestTokenVerifier($publicKeysManager);
+        $this->expectExceptionMessageMatches('/^Failed to verify the signature of Firebase test token\. See https:\/\/test\.doc\.url for details on how to retrieve a test token\./');
+        $tokenVerifier->verifyToken($token);
+    }
+
+    public function testVerifyTokenCertificateError() {
+        $mock = new MockHandler([
+            new RequestException('Expected error', new Request('GET', 'test'))
+        ]);
+        $publicKeysManager = $this->newPublicKeysManager(
+            null,
+            new Client(['handler' => HandlerStack::create($mock)])
+        );
+        $tokenVerifier = $this->newTestTokenVerifier($publicKeysManager);
+        $token = $this->tokenFactory->createToken();
+
+        try {
+            $tokenVerifier->verifyToken($token);
+            self::fail('No exception thrown');
+        } catch (FirebaseAuthException $e) {
+            $this->assertTrue($e->getPrevious() instanceof RequestException);
+            $this->assertEquals('Expected error', $e->getPrevious()->getMessage());
+        }
+    }
+
+    public function testLegacyCustomToken() {
+        $this->expectExceptionMessageMatches('/^verifyTestToken\(\) expects a test token, but was given a legacy custom token\./');
+        $this->tokenVerifier->verifyToken(self::LEGACY_CUSTOM_TOKEN);
+    }
+
+    public function testMalformedToken() {
+        $this->expectExceptionMessage("Failed to parse Firebase test token. Make sure you passed a string that represents a "
+            . "complete and valid JWT. See https://test.doc.url for details on how to retrieve "
+            . "a test token.");
+        $this->tokenVerifier->verifyToken('an.invalid.jwt');
+    }
+
+    private function newPublicKeysManager(?string $cert, ?ClientInterface $httpClient = null) {
         $serviceAccountCert = json_encode([
             TestTokenFactory::PRIVATE_KEY_ID => $cert
         ]);
-        $mock = new MockHandler([
-            new Response(200, [], $serviceAccountCert)
-        ]);
-        return (
-            new GooglePublicKeysManagerBuilder(
-                new Client(['handler' => HandlerStack::create($mock)])
-            ))
+        if(is_null($httpClient)) {
+            $mock = new MockHandler([
+                new Response(200, [], $serviceAccountCert)
+            ]);
+            $httpClient = new Client(['handler' => HandlerStack::create($mock)]);
+        }
+        return (new GooglePublicKeysManagerBuilder($httpClient))
             ->setPublicCertsEncodeUrl('https://test.cert.url')
             ->build();
     }

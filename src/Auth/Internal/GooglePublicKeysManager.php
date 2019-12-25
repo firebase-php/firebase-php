@@ -47,15 +47,11 @@ class GooglePublicKeysManager
 
     public function getPublicKeys(): array
     {
-        $publicKeys = [];
-        try {
-            if(empty($this->publicKeys) || Carbon::now()->valueOf() + self::REFRESH_SKEW_MILLIS > $this->expirationTimeMilliseconds) {
-                $this->refresh();
-            }
-            $publicKeys = $this->publicKeys;
-        } catch (\Exception $e) {}
+        if(empty($this->publicKeys) || Carbon::now()->valueOf() + self::REFRESH_SKEW_MILLIS > $this->expirationTimeMilliseconds) {
+            $this->refresh();
+        }
 
-        return $publicKeys;
+        return $this->publicKeys;
     }
 
     /**
@@ -63,24 +59,17 @@ class GooglePublicKeysManager
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function refresh(): ?GooglePublicKeysManager {
-        /** @var GooglePublicKeysManager $instance */
-        $instance = new GooglePublicKeysManager();
+        $this->publicKeys = [];
+        $certRequest = new Request('GET', $this->publicCertsEncodedUrl);
+        $certResponse = $this->httpClient->send($certRequest);
+        $this->expirationTimeMilliseconds = Carbon::now()->valueOf() + $this->getCacheTimeInSec($certResponse) * 1000;
+        $certs = json_decode($certResponse->getBody());
 
-        try {
-            $this->publicKeys = [];
-            $certRequest = new Request('GET', $this->publicCertsEncodedUrl);
-            $certResponse = $this->httpClient->send($certRequest);
-            $this->expirationTimeMilliseconds = Carbon::now()->valueOf() + $this->getCacheTimeInSec($certResponse) * 1000;
-            $certs = json_decode($certResponse->getBody());
+        foreach($certs as $kid => $cert) {
+            $this->publicKeys[$kid] = $cert;
+        }
 
-            foreach($certs as $kid => $cert) {
-                $this->publicKeys[$kid] = $cert;
-            }
-
-            $instance = $this;
-        } catch (\Exception $e) {}
-
-        return $instance;
+        return $this;
     }
 
     /**

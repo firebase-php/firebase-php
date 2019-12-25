@@ -89,7 +89,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     private function parse(string $token) {
         try {
             return (new Parser())->parse($token);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\Exception $e) {
             $errorMessage = sprintf(
                 'Failed to parse Firebase %s. Make sure you passed a string that represents a complete and valid JWT. See %s for details on how to retrieve %s.',
                 $this->shortName,
@@ -109,14 +109,26 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
     }
 
     private function checkSignature(Token $idToken) {
-        if(!$this->isSignatureValid($idToken)) {
-            throw new FirebaseAuthException(self::ERROR_INVALID_CREDENTIAL,
-                sprintf(
-                    'Failed to verify the signature of Firebase %s. %s',
-                    $this->shortName,
-                    $this->getVerifyTokenMessage()
-                )
-            );
+        try {
+
+            if(!$this->isSignatureValid($idToken)) {
+                throw new FirebaseAuthException(self::ERROR_INVALID_CREDENTIAL,
+                    sprintf(
+                        'Failed to verify the signature of Firebase %s. %s',
+                        $this->shortName,
+                        $this->getVerifyTokenMessage()
+                    )
+                );
+            }
+        } catch (\Exception $e) {
+            if(strpos($e->getMessage(), $this->shortName) === false) {
+                throw new FirebaseAuthException(
+                    self::ERROR_RUNTIME_EXCEPTION,
+                    'Error while verifying signature',
+                    $e
+                );
+            }
+            throw $e;
         }
     }
 
@@ -183,7 +195,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
             );
         } elseif (!$this->verifyTimestamp($idToken)) {
             $errorMessage = sprintf(
-                'Fireabse %s has expired or is not yet valid. Get a fresh %s and try again.',
+                'Firebase %s has expired or is not yet valid. Get a fresh %s and try again.',
                 $this->shortName,
                 $this->shortName
             );
@@ -198,7 +210,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         } elseif($this->isLegacyCustomToken($idToken)) {
             return sprintf('%s expects %s, but was given a legacy custom token.', $this->method, $this->articledShortName);
         }
-        return sprintf('Firebase %s has not "kid" claim.', $this->shortName);
+        return sprintf('Firebase %s has no "kid" claim.', $this->shortName);
     }
 
     /**
@@ -206,7 +218,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @return bool
      */
     private function isCustomToken(Token $idToken): bool {
-        return self::FIREBASE_AUDIENCE === $idToken->getClaim('aud');
+        return self::FIREBASE_AUDIENCE === $idToken->getClaim('aud', false);
     }
 
     /**
@@ -214,7 +226,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @return bool
      */
     private function isLegacyCustomToken(Token $idToken): bool {
-        $algorithm = $idToken->getHeader('alg');
+        $algorithm = $idToken->getHeader('alg', false);
         $v = intval($idToken->getClaim('v', -1));
         return $algorithm === (new Hmac\Sha256())->getAlgorithmId() && $v === 0 && $this->containsLegacyUidField($idToken);
     }
@@ -227,6 +239,9 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         $dataField = $idToken->getClaim('d', false);
         if(is_array($dataField)) {
             return isset($dataField['uid']);
+        }
+        if(is_object($dataField)) {
+            return isset($dataField->uid);
         }
         return false;
     }
