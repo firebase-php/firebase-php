@@ -195,6 +195,7 @@ class FirebaseApp {
         }
         // TODO: Test memory leak
         $this->services = [];
+        $this->deleted = true;
         unset(FirebaseApp::$instances[$this->name]);
     }
 
@@ -227,5 +228,13 @@ class FirebaseApp {
     public function __toString() {
         $className = (new \ReflectionClass($this))->getShortName();
         return sprintf('%s{name=%s}', $className, $this->name);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): ?bool
+    {
+        return $this->deleted;
     }
 }

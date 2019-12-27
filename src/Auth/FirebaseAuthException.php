@@ -12,11 +12,7 @@ class FirebaseAuthException extends FirebaseException
 {
     public function __construct($code, $message, Throwable $previous = null)
     {
-        if(is_null($previous)) {
-            parent::__construct($message, $code);
-        } else {
-            parent::__construct($message, $code, $previous);
-            Validator::isNonEmptyString($code);
-        }
+        parent::__construct($message, $code, $previous);
+        Validator::isNonEmptyString($code);
     }
 }

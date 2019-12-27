@@ -59,12 +59,14 @@ class FirebaseAuth
 
     /**
      * @param FirebaseApp|null $app
-     * @return mixed
+     * @return FirebaseAuth
      * @throws \Exception
      */
     public static function getInstance(?FirebaseApp $app = null) {
         if(is_null($app)) {
             return self::getInstance(FirebaseApp::getInstance());
+        } elseif($app->isDeleted()) {
+            throw new \Exception();
         }
 
         $service = ImplFirebaseTrampolines::getService($app, self::SERVICE_ID, FirebaseAuthService::class);
@@ -91,7 +93,7 @@ class FirebaseAuth
         return $this->getUserManager()->createSessionCookie($idToken, $options);
     }
 
-    public function verifySessionCookie(string $cookie, bool $checkRevoked = false) {
+    public function verifySessionCookie(?string $cookie, ?bool $checkRevoked = false) {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($cookie, 'Session cookie must not be null or empty');
         return $this->getSessionCookieVerifier($checkRevoked)->verifyToken($cookie);
