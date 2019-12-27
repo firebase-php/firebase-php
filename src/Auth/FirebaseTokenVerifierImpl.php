@@ -260,4 +260,52 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         $now = Carbon::createFromTimestamp($nowLeeway);
         return !$idToken->isExpired($now);
     }
+
+    /**
+     * @return string
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShortName(): string
+    {
+        return $this->shortName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getArticledShortName(): string
+    {
+        return $this->articledShortName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDocUrl(): string
+    {
+        return $this->docUrl;
+    }
+
+    /**
+     * @return GooglePublicKeysManager
+     */
+    public function getPublicKeysManager(): GooglePublicKeysManager
+    {
+        return $this->publicKeysManager;
+    }
+
+    /**
+     * @return IdTokenVerifier
+     */
+    public function getIdTokenVerifier(): IdTokenVerifier
+    {
+        return $this->idTokenVerifier;
+    }
 }

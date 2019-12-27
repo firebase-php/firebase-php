@@ -35,7 +35,7 @@ final class FirebaseTokenUtils
         $publicKeysManager = self::newPublicKeysManager(self::ID_TOKEN_CERT_URL);
 
         return (new FirebaseTokenVerifierImplBuilder())
-            ->setShortName('ID Token')
+            ->setShortName('ID token')
             ->setMethod('verifyIdToken()')
             ->setDocUrl('https://firebase.google.com/docs/auth/admin/verify-id-tokens')
             ->setPublicKeysManager($publicKeysManager)
