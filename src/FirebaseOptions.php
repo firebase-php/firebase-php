@@ -7,6 +7,8 @@ namespace Firebase;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 
 final class FirebaseOptions
 {
@@ -68,6 +70,11 @@ final class FirebaseOptions
      */
     private $readTimeout;
 
+    /**
+     * @var ClientInterface
+     */
+    private $httpClient;
+
     public function __construct(FirebaseOptionsBuilder $builder)
     {
         $this->databaseUrl = $builder->getDatabaseUrl();
@@ -79,6 +86,7 @@ final class FirebaseOptions
             Validator::checkArgument(empty($matches), 'StorageBucket must not include "gs://" prefix.');
         }
 
+        $this->httpClient = $builder->getHttpClient();
         $this->serviceAccountId = empty($builder->getServiceAccountId()) ? null : $builder->getServiceAccountId();
         $this->storageBucket = $builder->getStorageBucket();
         Validator::checkArgument($builder->getConnectTimeout() >= 0);
@@ -153,6 +161,14 @@ final class FirebaseOptions
     public function getReadTimeout(): ?int
     {
         return $this->readTimeout;
+    }
+
+    /**
+     * @return ClientInterface
+     */
+    public function getHttpClient(): ?ClientInterface
+    {
+        return $this->httpClient;
     }
 
     /**

@@ -94,7 +94,7 @@ class FirebaseTokenVerifierImplTest extends TestCase
      * @see Builder::relatedTo()
      */
     public function testVerifyTokenMissingSubject() {
-        $this->markTestSkipped();
+        $this->markTestSkipped('This test may never happen because $sub will be type cast to string.');
         $token = $this->createTokenWithSubject(null);
         $this->expectExceptionMessageMatches('/^Firebase test token has no "sub" \(subject\) claim\./');
         $this->tokenVerifier->verifyToken($token);

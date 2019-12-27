@@ -5,6 +5,7 @@ namespace Firebase\Auth\Internal;
 
 use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 
 class IAMSigner implements CryptoSigner
@@ -16,22 +17,31 @@ class IAMSigner implements CryptoSigner
      */
     private $serviceAccount;
 
-    public function __construct(string $serviceAccount)
+    private $httpClient;
+
+    private $signEndpoint;
+
+    public function __construct(string $serviceAccount, ?ClientInterface $httpClient = null)
     {
         Validator::isNonEmptyString($serviceAccount);
         $this->serviceAccount = $serviceAccount;
+        if(is_null($httpClient)) {
+            $this->httpClient = new Client();
+        } else {
+            $this->httpClient = $httpClient;
+        }
     }
 
     public function sign(string $payload)
     {
-        $encodedUrl = sprintf(self::IAM_SIGN_BLOB_URL, $this->serviceAccount);
+        $this->signEndpoint = sprintf(self::IAM_SIGN_BLOB_URL, $this->serviceAccount);
         $encodedPayload = base64_encode($payload);
         $content = [
             'bytesToSign' => $encodedPayload
         ];
 
-        $request = new Request('POST', $encodedUrl, [], $content);
-        $response = (new Client())->send($request);
+        $request = new Request('POST', $this->signEndpoint, [], json_encode($content));
+        $response = $this->httpClient->send($request);
         $body = json_decode($response->getBody(), true);
         return base64_decode($body['signature']);
     }
@@ -39,5 +49,13 @@ class IAMSigner implements CryptoSigner
     public function getAccount(): string
     {
         return $this->serviceAccount;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSignEndpoint()
+    {
+        return $this->signEndpoint;
     }
 }

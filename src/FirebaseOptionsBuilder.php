@@ -5,6 +5,7 @@ namespace Firebase;
 
 use Firebase\Util\Validator\Validator;
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use GuzzleHttp\ClientInterface;
 
 class FirebaseOptionsBuilder
 {
@@ -47,6 +48,11 @@ class FirebaseOptionsBuilder
      * @var int
      */
     private $readTimeout;
+
+    /**
+     * @var ClientInterface
+     */
+    private $httpClient;
 
 
     public function __construct(FirebaseOptions $options = null) {
@@ -207,6 +213,24 @@ class FirebaseOptionsBuilder
     public function setReadTimeout(int $readTimeout): FirebaseOptionsBuilder
     {
         $this->readTimeout = $readTimeout;
+        return $this;
+    }
+
+    /**
+     * @return ClientInterface
+     */
+    public function getHttpClient(): ?ClientInterface
+    {
+        return $this->httpClient;
+    }
+
+    /**
+     * @param ClientInterface $httpClient
+     * @return FirebaseOptionsBuilder
+     */
+    public function setHttpClient(ClientInterface $httpClient): FirebaseOptionsBuilder
+    {
+        $this->httpClient = $httpClient;
         return $this;
     }
 
