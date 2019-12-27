@@ -44,7 +44,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return string
      */
-    public function getUrl(): string
+    public function getUrl(): ?string
     {
         return $this->url;
     }
@@ -62,7 +62,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return bool
      */
-    public function isHandleCodeInApp(): bool
+    public function isHandleCodeInApp(): ?bool
     {
         return $this->handleCodeInApp;
     }
@@ -80,7 +80,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return string
      */
-    public function getDynamicLinkDomain(): string
+    public function getDynamicLinkDomain(): ?string
     {
         return $this->dynamicLinkDomain;
     }
@@ -98,7 +98,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return string
      */
-    public function getIOSBundleId(): string
+    public function getIOSBundleId(): ?string
     {
         return $this->iOSBundleId;
     }
@@ -116,7 +116,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return string
      */
-    public function getAndroidPackageName(): string
+    public function getAndroidPackageName(): ?string
     {
         return $this->androidPackageName;
     }
@@ -134,7 +134,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return string
      */
-    public function getAndroidMinimumVersion(): string
+    public function getAndroidMinimumVersion(): ?string
     {
         return $this->androidMinimumVersion;
     }
@@ -152,7 +152,7 @@ final class ActionCodeSettingsBuilder
     /**
      * @return bool
      */
-    public function isAndroidInstallApp(): bool
+    public function isAndroidInstallApp(): ?bool
     {
         return $this->androidInstallApp;
     }
@@ -167,7 +167,7 @@ final class ActionCodeSettingsBuilder
         return $this;
     }
 
-    public function builder() {
+    public function build() {
         return new ActionCodeSettings($this);
     }
 }
