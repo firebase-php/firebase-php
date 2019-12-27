@@ -4,7 +4,7 @@ namespace Firebase;
 
 use Firebase\Internal\FirebaseService;
 use Firebase\Util\Validator\Validator;
-use Google\Auth\Credentials\ServiceAccountCredentials;
+use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 
 class FirebaseApp {
     /**
@@ -171,8 +171,7 @@ class FirebaseApp {
         if(empty($projectId)) {
             $credentials = $this->getOptions()->getCredentials();
             if($credentials instanceof ServiceAccountCredentials) {
-                $json = $credentials::fromEnv();
-                $projectId = $json['project_id'];
+                $projectId = $credentials->getProjectId();
             }
         }
 

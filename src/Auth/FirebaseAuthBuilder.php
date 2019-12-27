@@ -50,7 +50,7 @@ class FirebaseAuthBuilder
     /**
      * @return FirebaseTokenFactory
      */
-    public function getTokenFactory(): FirebaseTokenFactory
+    public function getTokenFactory(): ?FirebaseTokenFactory
     {
         return $this->tokenFactory;
     }
@@ -59,7 +59,7 @@ class FirebaseAuthBuilder
      * @param FirebaseTokenFactory $tokenFactory
      * @return FirebaseAuthBuilder
      */
-    public function setTokenFactory(FirebaseTokenFactory $tokenFactory): FirebaseAuthBuilder
+    public function setTokenFactory(?FirebaseTokenFactory $tokenFactory): FirebaseAuthBuilder
     {
         $this->tokenFactory = $tokenFactory;
         return $this;
@@ -68,7 +68,7 @@ class FirebaseAuthBuilder
     /**
      * @return FirebaseTokenVerifier
      */
-    public function getIdTokenVerifier(): FirebaseTokenVerifier
+    public function getIdTokenVerifier(): ?FirebaseTokenVerifier
     {
         return $this->idTokenVerifier;
     }
@@ -77,7 +77,7 @@ class FirebaseAuthBuilder
      * @param FirebaseTokenVerifier $idTokenVerifier
      * @return FirebaseAuthBuilder
      */
-    public function setIdTokenVerifier(FirebaseTokenVerifier $idTokenVerifier): FirebaseAuthBuilder
+    public function setIdTokenVerifier(?FirebaseTokenVerifier $idTokenVerifier): FirebaseAuthBuilder
     {
         $this->idTokenVerifier = $idTokenVerifier;
         return $this;
@@ -86,7 +86,7 @@ class FirebaseAuthBuilder
     /**
      * @return FirebaseTokenVerifier
      */
-    public function getCookieTokenVerifier(): FirebaseTokenVerifier
+    public function getCookieTokenVerifier(): ?FirebaseTokenVerifier
     {
         return $this->cookieTokenVerifier;
     }
@@ -95,7 +95,7 @@ class FirebaseAuthBuilder
      * @param FirebaseTokenVerifier $cookieTokenVerifier
      * @return FirebaseAuthBuilder
      */
-    public function setCookieTokenVerifier(FirebaseTokenVerifier $cookieTokenVerifier): FirebaseAuthBuilder
+    public function setCookieTokenVerifier(?FirebaseTokenVerifier $cookieTokenVerifier): FirebaseAuthBuilder
     {
         $this->cookieTokenVerifier = $cookieTokenVerifier;
         return $this;

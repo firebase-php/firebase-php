@@ -5,8 +5,8 @@ namespace Firebase;
 
 
 use Firebase\Util\Validator\Validator;
-use Google\Auth\ApplicationDefaultCredentials;
-use Google\Auth\Credentials\ServiceAccountCredentials;
+use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
+use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 

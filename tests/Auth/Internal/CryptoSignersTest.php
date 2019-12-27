@@ -2,6 +2,7 @@
 
 namespace Firebase\Tests\Auth\Internal;
 
+use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 use Firebase\Auth\Internal\CryptoSigner;
 use Firebase\Auth\Internal\CryptoSigners;
 use Firebase\Auth\Internal\IAMSigner;
@@ -10,8 +11,6 @@ use Firebase\FirebaseApp;
 use Firebase\FirebaseOptionsBuilder;
 use Firebase\Tests\Testing\ServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
-use Google\Auth\Credentials\ServiceAccountCredentials;
-use Google\Auth\CredentialsLoader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -26,7 +25,7 @@ class CryptoSignersTest extends TestCase
     }
 
     public function testServiceAccountCryptoSigner() {
-        $creds = ServiceAccountCredentials::makeCredentials([], ServiceAccount::EDITOR()->asArray());
+        $creds = CredentialsLoader::makeCredentials([], ServiceAccount::EDITOR()->asArray());
         $expected = $creds->signBlob('foo');
         $signer = new ServiceAccountSigner($creds);
         $data = $signer->sign('foo');

@@ -3,12 +3,11 @@
 
 namespace Firebase\Tests;
 
-
 use Firebase\FirebaseOptions;
 use Firebase\FirebaseOptionsBuilder;
 use Firebase\Tests\Testing\ServiceAccount;
 use Firebase\Tests\Testing\TestUtils;
-use Google\Auth\Credentials\ServiceAccountCredentials;
+use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 use Google\Auth\CredentialsLoader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;

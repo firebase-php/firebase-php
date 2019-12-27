@@ -3,8 +3,7 @@
 
 namespace Firebase\Auth\Internal;
 
-
-use Google\Auth\Credentials\ServiceAccountCredentials;
+use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 
 class ServiceAccountSigner implements CryptoSigner
 {

@@ -9,7 +9,7 @@ use Firebase\ImplFirebaseTrampolines;
 use Firebase\Tests\Testing\ServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Firebase\Tests\Testing\TestUtils;
-use Google\Auth\ApplicationDefaultCredentials;
+use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
 use Google\Auth\CredentialsLoader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;

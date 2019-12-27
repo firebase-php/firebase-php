@@ -4,9 +4,9 @@
 namespace Firebase\Tests\Testing;
 
 
+use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 use Firebase\Util\Validator\Validator;
-use Google\Auth\ApplicationDefaultCredentials;
-use Google\Auth\CredentialsLoader;
+use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
 use Google\Auth\HttpHandler\HttpHandlerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;

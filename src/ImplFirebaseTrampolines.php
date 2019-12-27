@@ -22,16 +22,21 @@ class ImplFirebaseTrampolines
         return $app->isDefaultApp();
     }
 
-    public static function getService(FirebaseApp $app, string $id, string $class) {
+    /**
+     * @param FirebaseApp|null $app
+     * @param string $id
+     * @param string $class
+     * @return FirebaseService|mixed
+     */
+    public static function getService(?FirebaseApp $app, string $id, string $class) {
         $service = $app->getService($id);
         if(is_null($service)) {
             return null;
         }
-        settype($service, $class);
         return $service;
     }
 
-    public static function addService(FirebaseApp $app, FirebaseService $service) {
+    public static function addService(?FirebaseApp $app, FirebaseService $service) {
         $app->addService($service);
         return $service;
     }

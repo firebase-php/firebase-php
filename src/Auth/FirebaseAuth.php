@@ -62,7 +62,7 @@ class FirebaseAuth
      * @return mixed
      * @throws \Exception
      */
-    public static function getInstance(FirebaseApp $app = null) {
+    public static function getInstance(?FirebaseApp $app = null) {
         if(is_null($app)) {
             return self::getInstance(FirebaseApp::getInstance());
         }
@@ -239,5 +239,9 @@ class FirebaseAuth
 
     public function destroy() {
         $this->destroyed = true;
+    }
+
+    static function builder() {
+        return new FirebaseAuthBuilder();
     }
 }
