@@ -35,6 +35,6 @@ class UserMetadata
      */
     public function getLastSignInTimestamp(): int
     {
-        return $this->lastSignInTimestamp;
+        return $this->lastSignInTimestamp ?? 0;
     }
 }

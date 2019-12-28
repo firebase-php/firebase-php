@@ -57,6 +57,12 @@ final class UpdateRequest extends UserRecordRequest
         return $this;
     }
 
+    public function setDisabled(?bool $disabled)
+    {
+        $this->properties['disableUser'] = $disabled;
+        return $this;
+    }
+
     public function getProperties(): array
     {
         $copy = array_replace([], $this->properties);
@@ -78,7 +84,7 @@ final class UpdateRequest extends UserRecordRequest
             unset($copy['phoneNumber']);
         }
 
-        if(in_array(UserRecord::CUSTOM_ATTRIBUTES, $copy)) {
+        if(isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
             $customClaims = array_replace([], $copy[UserRecord::CUSTOM_ATTRIBUTES]);
             $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
         }

@@ -13,6 +13,7 @@ use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\Tests\Testing\IntegrationTestUtils;
 use Firebase\Tests\Testing\RandomUser;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
+use phpseclib\Crypt\Random;
 use PHPUnit\Framework\TestCase;
 
 class FirebaseAuthIT extends TestCase
@@ -112,6 +113,80 @@ class FirebaseAuthIT extends TestCase
         } finally {
             self::$auth->deleteUser($userRecord->getUid());
         }
+    }
+
+    public function testUserLifecycle() {
+        // Create user
+        $userRecord = self::$auth->createUser(new CreateRequest());
+        $uid = $userRecord->getUid();
+
+        // Get user
+        $userRecord = self::$auth->getUser($userRecord->getUid());
+        self::assertEquals($uid, $userRecord->getUid());
+        self::assertNull($userRecord->getDisplayName());
+        self::assertNull($userRecord->getEmail());
+        self::assertNull($userRecord->getPhoneNumber());
+        self::assertNull($userRecord->getPhotoUrl());
+        self::assertFalse($userRecord->isEmailVerified());
+        self::assertFalse($userRecord->isDisabled());
+        self::assertTrue($userRecord->getUserMetadata()->getCreationTimestamp() > 0);
+        self::assertEquals(0, $userRecord->getUserMetadata()->getLastSignInTimestamp());
+        self::assertEquals(0, count($userRecord->getProviderData()));
+        self::assertTrue(empty($userRecord->getCustomClaims()));
+
+        // update user
+        $randomUser = RandomUser::create();
+        $phone = $this->randomPhoneNumber();
+        $request = $userRecord->updateRequest()
+            ->setDisplayName('Updated Name')
+            ->setEmail($randomUser->getEmail())
+            ->setPhoneNumber($phone)
+            ->setPhotoUrl('https://example.com/photo.png')
+            ->setEmailVerified(true)
+            ->setPassword('password');
+        $userRecord = self::$auth->updateUser($request);
+        self::assertEquals($uid, $userRecord->getUid());
+        self::assertEquals('Updated Name', $userRecord->getDisplayName());
+        self::assertEquals($randomUser->getEmail(), $userRecord->getEmail());
+        self::assertEquals($phone, $userRecord->getPhoneNumber());
+        self::assertTrue($userRecord->isEmailVerified());
+        self::assertFalse($userRecord->isDisabled());
+        self::assertEquals(2, count($userRecord->getProviderData()));
+        self::assertTrue(empty($userRecord->getCustomClaims()));
+
+        // get user by email
+        $userRecord = self::$auth->getUserByEmail($userRecord->getEmail());
+        self::assertEquals($uid, $userRecord->getUid());
+
+        // disable user and remove properties
+        $request = $userRecord->updateRequest()
+            ->setPhotoUrl(null)
+            ->setDisplayName(null)
+            ->setPhoneNumber(null)
+            ->setDisabled(true);
+        $userRecord = self::$auth->updateUser($request);
+        self::assertEquals($uid, $userRecord->getUid());
+        self::assertNull($userRecord->getDisplayName());
+        self::assertEquals($randomUser->getEmail(), $userRecord->getEmail());
+        self::assertNull($userRecord->getPhoneNumber());
+        self::assertNull($userRecord->getPhotoUrl());
+        self::assertTrue($userRecord->isEmailVerified());
+        self::assertTrue($userRecord->isDisabled());
+        self::assertEquals(1, count($userRecord->getProviderData()));
+        self::assertTrue(empty($userRecord->getCustomClaims()));
+
+        // Delete user
+        self::$auth->deleteUser($userRecord->getUid());
+
+        try {
+            self::$auth->getUser($userRecord->getUid());
+            $this->fail('No error thrown for deleted user');
+        } catch (\Exception $e) {
+            self::assertTrue($e instanceof FirebaseAuthException);
+            self::assertEquals(FirebaseUserManager::USER_NOT_FOUND_ERROR, $e->getCode());
+        }
+
+
     }
 
     private function randomPhoneNumber() {

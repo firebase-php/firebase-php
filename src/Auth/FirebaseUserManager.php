@@ -148,7 +148,7 @@ class FirebaseUserManager
             '/accounts:update',
             $request->getProperties()
         );
-        if(empty($response) || !$request->getUid() !== $response['localId']) {
+        if(empty($response) || $request->getUid() !== $response['localId']) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to update user: ' . $request->getUid());
         }
     }
@@ -249,7 +249,6 @@ class FirebaseUserManager
     private function post(string $path, array $content) {
         Validator::isNonEmptyString($path, 'Path must not be null or empty');
         Validator::isNonNullObject($content, 'Content must not be null for POST requests');
-        Validator::isNonEmptyArray($content, 'Content must not be null for POST requests');
         return $this->sendRequest('POST', $path, $content);
     }
 
@@ -272,6 +271,7 @@ class FirebaseUserManager
         try {
             // TODO: avoid throttle of fetching access token
             $authToken = $this->app->getOptions()->getCredentials()->fetchAuthToken();
+            $body = empty($content) ? '{}' : json_encode($content);
             $request = new Request(
                 $method,
                 $this->baseUrl . $path,
@@ -281,12 +281,14 @@ class FirebaseUserManager
                         'Authorization' => 'Bearer ' . $authToken['access_token']
                     ]
                 ),
-                json_encode($content)
+                $body
             );
             $response = $this->httpClient->send($request, $requestOptions);
-            return json_decode($response->getBody(), true);
+            $body = json_decode($response->getBody(), true);
+            return $body;
         } catch (ClientException $e) {
             $this->handleHttpError($e);
+            var_dump($e->getMessage());
             return null;
         } catch (\RuntimeException $e) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Error while calling user management backend service', $e);

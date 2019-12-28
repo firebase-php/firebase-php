@@ -176,20 +176,21 @@ class User implements ResponseBuilder
             return null;
         }
         $user = new static();
-        $user->uid = $content['localId'];
-        $user->email = $content['email'];
-        $user->phoneNumber = $content['phoneNumber'];
-        $user->emailVerified = $content['emailVerified'];
-        $user->displayName = $content['displayName'];
-        $user->photoUrl = $content['photoUrl'];
-        $user->disabled = $content['disabled'];
+        $user->uid = $content['localId'] ?? null;
+        $user->email = $content['email'] ?? null;
+        $user->phoneNumber = $content['phoneNumber'] ?? null;
+        $user->emailVerified = $content['emailVerified'] ?? false;
+        $user->displayName = $content['displayName'] ?? null;
+        $user->photoUrl = $content['photoUrl'] ?? null;
+        $user->disabled = $content['disabled'] ?? false;
         $user->providers = [];
-        if(is_array($content['providerUserInfo'])) {
-            foreach($content['providerUserInfo'] as $provider) {
+        $providers = $content['providerUserInfo'] ?? [];
+        if(is_array($providers)) {
+            foreach($providers as $provider) {
                 $user->providers[] = Provider::build($provider);
             }
         }
-        $user->createdAt = $content['createdAt'];
+        $user->createdAt = $content['createdAt'] ?? null;
         $user->lastLoginAt = $content['lastLoginAt'] ?? null;
         $user->validSince = $content['validSince'] ?? null;
         $user->customClaims = $content['customAttributes'] ?? null;

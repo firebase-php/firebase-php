@@ -4,6 +4,7 @@
 namespace Firebase\Auth;
 
 use Firebase\Auth\Internal\GetAccountInfoResponse\User;
+use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\Util\Validator\Validator;
 
 class UserRecord implements UserInfo
@@ -58,11 +59,6 @@ class UserRecord implements UserInfo
      * @var UserProvider[]
      */
     private $providers;
-
-    /**
-     * @var UserMetadata
-     */
-    private $metadata;
 
     /**
      * @var string|null
@@ -171,7 +167,7 @@ class UserRecord implements UserInfo
     /**
      * @return bool
      */
-    public function isEmailVerified(): bool
+    public function isEmailVerified(): ?bool
     {
         return $this->emailVerified;
     }
@@ -203,7 +199,7 @@ class UserRecord implements UserInfo
     /**
      * @return bool
      */
-    public function isDisabled(): bool
+    public function isDisabled(): ?bool
     {
         return $this->disabled;
     }
@@ -211,7 +207,7 @@ class UserRecord implements UserInfo
     /**
      * @return UserInfo[]
      */
-    public function getProviderData(): array
+    public function getProviderData(): ?array
     {
         return $this->providers;
     }
@@ -219,15 +215,15 @@ class UserRecord implements UserInfo
     /**
      * @return UserMetadata
      */
-    public function getUserMetadata(): UserMetadata
+    public function getUserMetadata(): ?UserMetadata
     {
-        return $this->metadata;
+        return $this->userMetadata;
     }
 
     /**
      * @return array
      */
-    public function getCustomClaims(): array
+    public function getCustomClaims(): ?array
     {
         return $this->customClaims;
     }
@@ -243,7 +239,7 @@ class UserRecord implements UserInfo
     /**
      * @return int
      */
-    public function getTokensValidAfterTimestamp(): int
+    public function getTokensValidAfterTimestamp(): ?int
     {
         return $this->tokensValidAfterTimestamp;
     }
@@ -251,5 +247,9 @@ class UserRecord implements UserInfo
     public function getProviderId(): ?string
     {
         return self::PROVIDER_ID;
+    }
+
+    public function updateRequest() {
+        return new UpdateRequest($this->uid);
     }
 }
