@@ -34,4 +34,4 @@ jobs: # a collection of steps
             - vendor
       - run:
           name: Running tests
-          command: ./vendor/bin/phpunit
+          command: ./vendor/bin/phpunit --testsuite=unit
