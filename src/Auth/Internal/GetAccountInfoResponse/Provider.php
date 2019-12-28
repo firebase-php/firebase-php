@@ -92,11 +92,11 @@ class Provider implements ResponseBuilder
             return null;
         }
         $provider = new static();
-        $provider->uid = $content['rawId'];
-        $provider->email = $content['email'];
-        $provider->phoneNumber = $content['displayName'];
-        $provider->photoUrl = $content['photoUrl'];
-        $provider->providerId = $content['providerId'];
+        $provider->uid = $content['rawId'] ?? null;
+        $provider->email = $content['email'] ?? null;
+        $provider->phoneNumber = $content['displayName'] ?? null;
+        $provider->photoUrl = $content['photoUrl'] ?? null;
+        $provider->providerId = $content['providerId'] ?? null;
 
         return $provider;
     }

@@ -5,6 +5,7 @@ namespace Firebase\Tests\Testing;
 
 
 use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
+use Firebase\FirebaseOptions;
 use Firebase\Util\Validator\Validator;
 use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
 use Google\Auth\HttpHandler\HttpHandlerFactory;
@@ -53,8 +54,15 @@ class TestUtils
         }
     }
 
-    public static function getCertCredential(ServiceAccount $serviceAccount) {
-        return CredentialsLoader::makeCredentials([], $serviceAccount->asArray());
+    /**
+     * @param ServiceAccount|array $serviceAccount
+     * @return \Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\UserRefreshCredentials
+     */
+    public static function getCertCredential($serviceAccount) {
+        if(is_array($serviceAccount)) {
+            return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount);
+        }
+        return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount->asArray());
     }
 
     /**

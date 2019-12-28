@@ -14,6 +14,7 @@ use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 
 class FirebaseUserManager
@@ -59,13 +60,16 @@ class FirebaseUserManager
 
     private $httpClient;
 
+    private $app;
+
     public function __construct(FirebaseApp $app)
     {
         Validator::isNonNullObject($app, 'FirebaseApp must not be null');
+        $this->app = $app;
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         Validator::isNonEmptyString($projectId, 'Project ID is required to access the auth service. Use a service account credential or set the project ID explicitly via FirebaseOptions. Alternatively you can also set the project ID via the GOOGLE_CLOUD_PROJECT environment variable.');
         $this->baseUrl = sprintf(self::ID_TOOLKIT_URL, $projectId);
-        $this->httpClient = new Client(['baseUrl' => $this->baseUrl]);
+        $this->httpClient = new Client();
     }
 
     public function getUserById(string $uid): UserRecord {
@@ -126,7 +130,7 @@ class FirebaseUserManager
             '/accounts',
             $request->getProperties()
         );
-        if(empty($response)) {
+        if(!empty($response)) {
             $uid = $response['localId'];
             if(is_string($uid) && !empty($uid)) {
                 return $uid;
@@ -266,15 +270,45 @@ class FirebaseUserManager
         Validator::isNonEmptyString($method, 'Method must not be null or empty');
         Validator::isNonEmptyString($path, 'URL path must not be null or empty');
         try {
+            // TODO: avoid throttle of fetching access token
+            $authToken = $this->app->getOptions()->getCredentials()->fetchAuthToken();
             $request = new Request(
                 $method,
-                $path,
-                self::FIREBASE_AUTH_HEADERS,
-                $content);
+                $this->baseUrl . $path,
+                array_merge(
+                    self::FIREBASE_AUTH_HEADERS,
+                    [
+                        'Authorization' => 'Bearer ' . $authToken['access_token']
+                    ]
+                ),
+                json_encode($content)
+            );
             $response = $this->httpClient->send($request, $requestOptions);
             return json_decode($response->getBody(), true);
-        } catch (\Exception $e) {
+        } catch (ClientException $e) {
+            $this->handleHttpError($e);
+            return null;
+        } catch (\RuntimeException $e) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Error while calling user management backend service', $e);
         }
+    }
+
+    private function handleHttpError(ClientException $e) {
+        $contents = $e->getResponse()->getBody()->getContents();
+        try {
+            $arr = json_decode($contents, true);
+            $code = self::ERROR_CODES[$arr['error']['message']] ?? null;
+            if(!is_null($code)) {
+                throw new FirebaseAuthException($code, 'User management service responded with an error', $e);
+            }
+        } catch (\RuntimeException $e) {
+
+        }
+
+        $msg = sprintf(
+            'Unexpected HTTP response with status %d; body: %s', $e->getCode(), $contents
+        );
+
+        throw new FirebaseAuthException(self::INTERNAL_ERROR, $msg, $e);
     }
 }

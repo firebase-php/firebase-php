@@ -7,3 +7,6 @@ composer.lock
 /.idea
 /build/
 .phpunit.result.cache
+
+integration_cert.json
+integration_apikey.txt

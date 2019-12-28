@@ -66,7 +66,7 @@ class FirebaseAuth
         if(is_null($app)) {
             return self::getInstance(FirebaseApp::getInstance());
         } elseif($app->isDeleted()) {
-            throw new \Exception();
+            throw new \Exception('App is deleted');
         }
 
         $service = ImplFirebaseTrampolines::getService($app, self::SERVICE_ID, FirebaseAuthService::class);

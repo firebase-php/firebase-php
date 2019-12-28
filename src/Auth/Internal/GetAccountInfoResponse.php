@@ -42,7 +42,7 @@ final class GetAccountInfoResponse implements ResponseBuilder
         $response = new GetAccountInfoResponse();
         $response->kind = $content['kind'];
         $response->users = [];
-        if(is_array($content['users'])) {
+        if(isset($content['users'])) {
             foreach($content['users'] as $user) {
                 $response->users[] = User::build($user);
             }

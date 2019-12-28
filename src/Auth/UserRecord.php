@@ -104,7 +104,7 @@ class UserRecord implements UserInfo
         $this->emailVerified = $response->isEmailVerified();
         $this->displayName = $response->getDisplayName();
         $this->photoUrl = $response->getPhotoUrl();
-        $this->displayName = $response->isDisabled();
+        $this->disabled = $response->isDisabled();
         if(empty($response->getProviders())) {
             $this->providers = [];
         } else {
@@ -209,9 +209,9 @@ class UserRecord implements UserInfo
     }
 
     /**
-     * @return UserProvider[]
+     * @return UserInfo[]
      */
-    public function getProviders(): array
+    public function getProviderData(): array
     {
         return $this->providers;
     }
@@ -219,25 +219,9 @@ class UserRecord implements UserInfo
     /**
      * @return UserMetadata
      */
-    public function getMetadata(): UserMetadata
+    public function getUserMetadata(): UserMetadata
     {
         return $this->metadata;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPasswordHash(): ?string
-    {
-        return $this->passwordHash;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPasswordSalt(): ?string
-    {
-        return $this->passwordSalt;
     }
 
     /**
@@ -267,23 +251,5 @@ class UserRecord implements UserInfo
     public function getProviderId(): ?string
     {
         return self::PROVIDER_ID;
-    }
-
-    /**
-     * @return UserMetadata
-     */
-    public function getUserMetadata(): UserMetadata
-    {
-        return $this->userMetadata;
-    }
-
-    /**
-     * @param UserMetadata $userMetadata
-     * @return UserRecord
-     */
-    public function setUserMetadata(UserMetadata $userMetadata): UserRecord
-    {
-        $this->userMetadata = $userMetadata;
-        return $this;
     }
 }

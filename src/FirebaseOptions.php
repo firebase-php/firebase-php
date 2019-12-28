@@ -12,7 +12,7 @@ use GuzzleHttp\ClientInterface;
 
 final class FirebaseOptions
 {
-    private const FIREBASE_SCOPES = [
+    public const FIREBASE_SCOPES = [
         // Enables access to Firebase Realtime Database.
         'https://www.googleapis.com/auth/firebase.database',
 

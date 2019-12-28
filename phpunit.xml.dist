@@ -4,8 +4,11 @@
 <!--        <env name="SUPPRESS_GCLOUD_CREDS_WARNING" value="true" force="true"/>-->
     </php>
     <testsuites>
-        <testsuite name="firebase-php-tests">
+        <testsuite name="unit">
             <directory suffix="Test.php">tests</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory suffix="IT.php">tests</directory>
         </testsuite>
     </testsuites>
     <filter>

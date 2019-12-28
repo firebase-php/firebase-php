@@ -13,7 +13,7 @@ final class UpdateRequest extends UserRecordRequest
     public function __construct(string $uid)
     {
         Validator::isUid($uid);
-        $this->properties['uid'] = $uid;
+        $this->properties['localId'] = $uid;
     }
 
     public function getUid() {

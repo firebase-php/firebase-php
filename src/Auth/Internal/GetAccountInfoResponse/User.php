@@ -74,7 +74,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getUid(): string
+    public function getUid(): ?string
     {
         return $this->uid;
     }
@@ -82,7 +82,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
@@ -90,7 +90,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getPhoneNumber(): string
+    public function getPhoneNumber(): ?string
     {
         return $this->phoneNumber;
     }
@@ -98,7 +98,7 @@ class User implements ResponseBuilder
     /**
      * @return bool
      */
-    public function isEmailVerified(): bool
+    public function isEmailVerified(): ?bool
     {
         return $this->emailVerified;
     }
@@ -106,7 +106,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getDisplayName(): string
+    public function getDisplayName(): ?string
     {
         return $this->displayName;
     }
@@ -114,7 +114,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getPhotoUrl(): string
+    public function getPhotoUrl(): ?string
     {
         return $this->photoUrl;
     }
@@ -122,7 +122,7 @@ class User implements ResponseBuilder
     /**
      * @return bool
      */
-    public function isDisabled(): bool
+    public function isDisabled(): ?bool
     {
         return $this->disabled;
     }
@@ -130,7 +130,7 @@ class User implements ResponseBuilder
     /**
      * @return Provider[]
      */
-    public function getProviders(): array
+    public function getProviders(): ?array
     {
         return $this->providers;
     }
@@ -138,7 +138,7 @@ class User implements ResponseBuilder
     /**
      * @return int
      */
-    public function getCreatedAt(): int
+    public function getCreatedAt(): ?int
     {
         return $this->createdAt;
     }
@@ -146,7 +146,7 @@ class User implements ResponseBuilder
     /**
      * @return int
      */
-    public function getLastLoginAt(): int
+    public function getLastLoginAt(): ?int
     {
         return $this->lastLoginAt;
     }
@@ -154,7 +154,7 @@ class User implements ResponseBuilder
     /**
      * @return int
      */
-    public function getValidSince(): int
+    public function getValidSince(): ?int
     {
         return $this->validSince;
     }
@@ -162,7 +162,7 @@ class User implements ResponseBuilder
     /**
      * @return string
      */
-    public function getCustomClaims(): string
+    public function getCustomClaims(): ?string
     {
         return $this->customClaims;
     }
@@ -190,9 +190,9 @@ class User implements ResponseBuilder
             }
         }
         $user->createdAt = $content['createdAt'];
-        $user->lastLoginAt = $content['lastLoginAt'];
-        $user->validSince = $content['validSince'];
-        $user->customClaims = $content['customAttributes'];
+        $user->lastLoginAt = $content['lastLoginAt'] ?? null;
+        $user->validSince = $content['validSince'] ?? null;
+        $user->customClaims = $content['customAttributes'] ?? null;
         return $user;
     }
 }
