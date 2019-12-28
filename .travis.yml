@@ -1,0 +1,36 @@
+language: php
+
+php:
+  - 7.2
+  - 7.3
+  - 7.4
+
+matrix:
+  include:
+    - name: "PHP 7.2"
+      php: "7.2"
+      env: COMPOSER_ARGS="--prefer-dist"
+
+    - name: "PHP 7.3"
+      php: "7.3"
+      env: COMPOSER_ARGS="--prefer-dist"
+
+    - name: "PHP 7.4"
+      php: "7.4"
+      env: COMPOSER_ARGS="--prefer-dist"
+
+before_script:
+  - pecl install grpc
+  - composer install --prefer-dist --no-interaction --no-suggest
+
+script:
+  - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --config-file=.php_cs .
+  - vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
+
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+cache:
+  directories:
+    - $HOME/.composer/cache
