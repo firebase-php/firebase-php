@@ -141,7 +141,7 @@ class FirebaseAuth
         return $this->getUserManager()->getUserByPhoneNumber($phoneNumber);
     }
 
-    public function listUsers(string $pageToken, int $maxResults = FirebaseUserManager::MAX_LIST_USERS_RESULT) {
+    public function listUsers(?string $pageToken = null, int $maxResults = FirebaseUserManager::MAX_LIST_USERS_RESULT) {
         $this->checkNotDestroyed();
         return $this->getUserManager()->listUsers($maxResults, $pageToken);
     }
@@ -162,7 +162,7 @@ class FirebaseAuth
         return $userManager->getUserById($request->getUid());
     }
 
-    public function setCustomUserClaims(string $uid, array $claims = null) {
+    public function setCustomUserClaims(string $uid, ?array $claims = null) {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         $userManager = $this->getUserManager();

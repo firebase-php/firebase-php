@@ -29,8 +29,8 @@ class User extends GetAccountInfoResponse\User
         }
         /** @var User $user */
         $user = parent::build($content);
-        $user->passwordSalt = $content['salt'];
-        $user->passwordHash = $content['passwordHash'];
+        $user->passwordSalt = $content['salt'] ?? null;
+        $user->passwordHash = $content['passwordHash'] ?? null;
 
         return $user;
     }
@@ -38,7 +38,7 @@ class User extends GetAccountInfoResponse\User
     /**
      * @return string
      */
-    public function getPasswordHash(): string
+    public function getPasswordHash(): ?string
     {
         return $this->passwordHash;
     }
@@ -46,7 +46,7 @@ class User extends GetAccountInfoResponse\User
     /**
      * @return string
      */
-    public function getPasswordSalt(): string
+    public function getPasswordSalt(): ?string
     {
         return $this->passwordSalt;
     }

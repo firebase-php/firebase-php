@@ -7,19 +7,22 @@ use Faker\Provider\Base;
 use Firebase\Auth\FirebaseAuth;
 use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseUserManager;
+use Firebase\Auth\Internal\DownloadAccountResponse;
 use Firebase\Auth\UserInfo;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\Tests\Testing\IntegrationTestUtils;
 use Firebase\Tests\Testing\RandomUser;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use phpseclib\Crypt\Random;
 use PHPUnit\Framework\TestCase;
 
 class FirebaseAuthIT extends TestCase
 {
     private const VERIFY_CUSTOM_TOKEN_URL =
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken';
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken';
 
     private const VERIFY_PASSWORD_URL =
         'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword';
@@ -185,8 +188,70 @@ class FirebaseAuthIT extends TestCase
             self::assertTrue($e instanceof FirebaseAuthException);
             self::assertEquals(FirebaseUserManager::USER_NOT_FOUND_ERROR, $e->getCode());
         }
+    }
 
+    public function testListUsers() {
+        $uids = [];
+        $collected = 0;
+        try {
+            $uids[] = self::$auth->createUser((new CreateRequest())->setPassword('password'))->getUid();
+            $uids[] = self::$auth->createUser((new CreateRequest())->setPassword('password'))->getUid();
+            $uids[] = self::$auth->createUser((new CreateRequest())->setPassword('password'))->getUid();
 
+            $response = self::$auth->listUsers(null);
+            $users = $response->getUsers();
+            foreach($users as $user) {
+                if(in_array($user->getUid(), $uids)) {
+                    $collected++;
+                    self::assertNotNull($user->getPasswordHash(), 'Missing passwordHash field. A common cause would be '
+                        . '"forgetting to add the "Firebase Authentication Admin" permission. See "'
+                        . 'instructions in CONTRIBUTING.md');
+                    self::assertNotNull($user->getPasswordSalt());
+                }
+            }
+
+            self::assertEquals(count($uids), $collected);
+        } finally {
+            foreach($uids as $uid) {
+                self::$auth->deleteUser($uid);
+            }
+        }
+    }
+
+    public function testCustomClaims() {
+        $userRecord = self::$auth->createUser(new CreateRequest());
+        $uid = $userRecord->getUid();
+
+        try {
+            self::assertTrue(empty($userRecord->getCustomClaims()));
+            $expected = [
+                'admin' => true,
+                'package' => 'gold'
+            ];
+            self::$auth->setCustomUserClaims($uid, $expected);
+
+            // Should have 2 claims
+            $updatedUser = self::$auth->getUser($uid);
+            self::assertEquals(2, count($updatedUser->getCustomClaims()));
+            foreach($expected as $key => $entry) {
+                self::assertEquals($entry, $updatedUser->getCustomClaims()[$key]);
+            }
+
+            $customToken = self::$auth->createCustomToken($uid);
+            $idToken = $this->signInWithCustomToken($customToken);
+            $decoded = self::$auth->verifyIdToken($idToken);
+            $result = $decoded->getClaims();
+
+            foreach($expected as $key => $entry) {
+                self::assertEquals($entry, $result[$key]);
+            }
+
+            self::$auth->setCustomUserClaims($uid, null);
+            $updatedUser = self::$auth->getUser($uid);
+            self::assertTrue(empty($updatedUser->getCustomClaims()));
+        } finally {
+            self::$auth->deleteUser($uid);
+        }
     }
 
     private function randomPhoneNumber() {
@@ -204,5 +269,21 @@ class FirebaseAuthIT extends TestCase
             self::assertTrue($e instanceof FirebaseAuthException);
             self::assertEquals('uid-already-exists', $e->getCode());
         }
+    }
+
+    private function signInWithCustomToken(string $customToken) {
+        $url = sprintf('%s?key=%s', self::VERIFY_CUSTOM_TOKEN_URL, IntegrationTestUtils::getApiKey());
+        $content = [
+            'token' => $customToken,
+            'returnSecureToken' => true
+        ];
+        $request = new Request(
+            'POST',
+            $url,
+            [],
+            json_encode($content)
+        );
+        $response = (new Client())->send($request);
+        return json_decode($response->getBody(), true)['idToken'];
     }
 }

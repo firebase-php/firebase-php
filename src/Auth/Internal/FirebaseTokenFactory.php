@@ -43,7 +43,9 @@ class FirebaseTokenFactory
             foreach($developerClaims as $key => $claim) {
                 Validator::checkArgument(!in_array($key, $reservedNames), sprintf('developerClaims must not contain a reserved key: %s', $key));
             }
-            $payload['claims'] = $developerClaims;
+            if(!empty($developerClaims)) {
+                $payload['claims'] = $developerClaims;
+            }
         }
 
         return $this->signPayload($header, $payload);

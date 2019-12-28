@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Firebase\Auth\Internal\GooglePublicKeysManager;
 use Firebase\Auth\Internal\IdTokenVerifier;
 use Firebase\Util\Validator\Validator;
+use Lcobucci\JWT\Claim;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac;
 use Lcobucci\JWT\Signer\Rsa;
@@ -70,7 +71,13 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         $idToken = $this->parse($jwtToken);
         $this->checkContents($idToken);
         $this->checkSignature($idToken);
-        return new FirebaseToken($idToken->getClaims());
+        /** @var Claim[] $claims */
+        $claims = $idToken->getClaims();
+        $allClaims = [];
+        foreach($claims as $key => $claim) {
+            $allClaims[$key] = $claim->getValue();
+        }
+        return new FirebaseToken($allClaims);
     }
 
     private function prefixWithIndefiniteArticle(string $word) {

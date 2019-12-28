@@ -20,7 +20,7 @@ class DownloadAccountResponse implements ResponseBuilder
     private $pageToken;
 
     /**
-     * @return array
+     * @return User[]
      */
     public function getUsers()
     {
@@ -30,7 +30,7 @@ class DownloadAccountResponse implements ResponseBuilder
     /**
      * @return string
      */
-    public function getPageToken(): string
+    public function getPageToken(): ?string
     {
         return $this->pageToken;
     }
@@ -51,7 +51,7 @@ class DownloadAccountResponse implements ResponseBuilder
                 $response->users[] = User::build($user);
             }
         }
-        $response->pageToken = $content['nextPageToken'];
+        $response->pageToken = $content['nextPageToken'] ?? null;
         return $response;
     }
 }

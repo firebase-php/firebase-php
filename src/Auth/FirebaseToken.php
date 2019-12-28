@@ -13,6 +13,10 @@ final class FirebaseToken
      */
     private $claims;
 
+    /**
+     * FirebaseToken constructor.
+     * @param array|null $claims
+     */
     public function __construct(?array $claims = null)
     {
         // TODO: allow JWT Token as claims parameter

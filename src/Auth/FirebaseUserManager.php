@@ -16,6 +16,8 @@ use Firebase\Util\Validator\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Uri;
+use function GuzzleHttp\Psr7\build_query;
 
 class FirebaseUserManager
 {
@@ -174,7 +176,7 @@ class FirebaseUserManager
      * @return DownloadAccountResponse|null
      * @throws FirebaseAuthException
      */
-    public function listUsers(int $maxResults, string $pageToken) {
+    public function listUsers(int $maxResults, ?string $pageToken = null) {
         $payload = ['maxResults' => $maxResults];
         if(is_string($pageToken)) {
             $payload['nextPageToken'] = $pageToken;
@@ -271,10 +273,17 @@ class FirebaseUserManager
         try {
             // TODO: avoid throttle of fetching access token
             $authToken = $this->app->getOptions()->getCredentials()->fetchAuthToken();
-            $body = empty($content) ? '{}' : json_encode($content);
+            $body = null;
+            $query = '';
+            $uri = new Uri($this->baseUrl . $path);
+            if($method === 'GET') {
+                $query = !isset($requestOptions['query']) ? '' : build_query($requestOptions['query']);
+            } else {
+                $body = empty($content) ? '{}' : json_encode($content);
+            }
             $request = new Request(
                 $method,
-                $this->baseUrl . $path,
+                $uri->withQuery($query),
                 array_merge(
                     self::FIREBASE_AUTH_HEADERS,
                     [
@@ -288,7 +297,6 @@ class FirebaseUserManager
             return $body;
         } catch (ClientException $e) {
             $this->handleHttpError($e);
-            var_dump($e->getMessage());
             return null;
         } catch (\RuntimeException $e) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Error while calling user management backend service', $e);

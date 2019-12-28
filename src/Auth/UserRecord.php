@@ -130,7 +130,7 @@ class UserRecord implements UserInfo
 
     public static function serializeCustomClaims(array $customClaims = null): string {
         if(is_null($customClaims) || empty($customClaims)) {
-            return json_encode([]);
+            return '{}';
         }
 
         $claimPayloads = json_encode($customClaims);

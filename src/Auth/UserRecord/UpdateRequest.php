@@ -45,9 +45,9 @@ final class UpdateRequest extends UserRecordRequest
         return $this;
     }
 
-    public function setCustomClaims(array $customClaims = null) {
+    public function setCustomClaims(?array $customClaims = null) {
         UserRecord::checkCustomClaims($customClaims);
-        $this->properties[UserRecord::CUSTOM_ATTRIBUTES] = $customClaims;
+        $this->properties[UserRecord::CUSTOM_ATTRIBUTES] = is_null($customClaims) ? [] : $customClaims;
         return $this;
     }
 
