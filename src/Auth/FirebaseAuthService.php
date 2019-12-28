@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\FirebaseApp;
 use Firebase\Internal\FirebaseService;
 

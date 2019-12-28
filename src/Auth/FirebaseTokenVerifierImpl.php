@@ -52,7 +52,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      */
     private $idTokenVerifier;
 
-    public static function builder() {
+    public static function builder()
+    {
         return new FirebaseTokenVerifierImplBuilder();
     }
 
@@ -74,14 +75,15 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         /** @var Claim[] $claims */
         $claims = $idToken->getClaims();
         $allClaims = [];
-        foreach($claims as $key => $claim) {
+        foreach ($claims as $key => $claim) {
             $allClaims[$key] = $claim->getValue();
         }
         return new FirebaseToken($allClaims);
     }
 
-    private function prefixWithIndefiniteArticle(string $word) {
-        if(strpos('aeiouAEIOU', $word[0]) === false) {
+    private function prefixWithIndefiniteArticle(string $word)
+    {
+        if (strpos('aeiouAEIOU', $word[0]) === false) {
             return 'a ' . $word;
         } else {
             return 'an ' . $word;
@@ -93,7 +95,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @return \Lcobucci\JWT\Token
      * @throws FirebaseAuthException
      */
-    private function parse(string $token) {
+    private function parse(string $token)
+    {
         try {
             return (new Parser())->parse($token);
         } catch (\Exception $e) {
@@ -101,25 +104,28 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 'Failed to parse Firebase %s. Make sure you passed a string that represents a complete and valid JWT. See %s for details on how to retrieve %s.',
                 $this->shortName,
                 $this->docUrl,
-                $this->articledShortName);
+                $this->articledShortName
+            );
             throw new FirebaseAuthException(self::ERROR_INVALID_CREDENTIAL, $errorMessage, $e);
         }
     }
 
-    private function checkContents(Token $token) {
+    private function checkContents(Token $token)
+    {
         $errorMessage = $this->getErrorIfContentInvalid($token);
 
-        if(is_string($errorMessage)) {
+        if (is_string($errorMessage)) {
             $message = sprintf('%s %s', $errorMessage, $this->getVerifyTokenMessage());
             throw new FirebaseAuthException(self::ERROR_INVALID_CREDENTIAL, $message);
         }
     }
 
-    private function checkSignature(Token $idToken) {
+    private function checkSignature(Token $idToken)
+    {
         try {
-
-            if(!$this->isSignatureValid($idToken)) {
-                throw new FirebaseAuthException(self::ERROR_INVALID_CREDENTIAL,
+            if (!$this->isSignatureValid($idToken)) {
+                throw new FirebaseAuthException(
+                    self::ERROR_INVALID_CREDENTIAL,
                     sprintf(
                         'Failed to verify the signature of Firebase %s. %s',
                         $this->shortName,
@@ -128,7 +134,7 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 );
             }
         } catch (\Exception $e) {
-            if(strpos($e->getMessage(), $this->shortName) === false) {
+            if (strpos($e->getMessage(), $this->shortName) === false) {
                 throw new FirebaseAuthException(
                     self::ERROR_RUNTIME_EXCEPTION,
                     'Error while verifying signature',
@@ -139,10 +145,11 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         }
     }
 
-    private function isSignatureValid(Token $idToken) {
+    private function isSignatureValid(Token $idToken)
+    {
         $publicKeys = $this->publicKeysManager->getPublicKeys();
-        foreach($publicKeys as $key) {
-            if($idToken->verify(new Sha256(), $key)) {
+        foreach ($publicKeys as $key) {
+            if ($idToken->verify(new Sha256(), $key)) {
                 return true;
             }
         }
@@ -150,7 +157,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         return false;
     }
 
-    private function getVerifyTokenMessage() {
+    private function getVerifyTokenMessage()
+    {
         return sprintf(
             'See %s for details on how to retrieve %s.',
             $this->docUrl,
@@ -158,9 +166,10 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         );
     }
 
-    private function getErrorIfContentInvalid(Token $idToken) {
+    private function getErrorIfContentInvalid(Token $idToken)
+    {
         $errorMessage = null;
-        if(!$idToken->hasHeader('kid') || empty($idToken->getHeader('kid'))) {
+        if (!$idToken->hasHeader('kid') || empty($idToken->getHeader('kid'))) {
             $errorMessage = $this->getErrorForTokenWithoutKid($idToken);
         } elseif ((new Rsa\Sha256())->getAlgorithmId() !== $idToken->getHeader('alg')) {
             $errorMessage = sprintf(
@@ -211,10 +220,11 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
         return $errorMessage;
     }
 
-    private function getErrorForTokenWithoutKid(Token $idToken) {
-        if($this->isCustomToken($idToken)) {
+    private function getErrorForTokenWithoutKid(Token $idToken)
+    {
+        if ($this->isCustomToken($idToken)) {
             return sprintf('%s expects %s, but was given a custom token.', $this->method, $this->articledShortName);
-        } elseif($this->isLegacyCustomToken($idToken)) {
+        } elseif ($this->isLegacyCustomToken($idToken)) {
             return sprintf('%s expects %s, but was given a legacy custom token.', $this->method, $this->articledShortName);
         }
         return sprintf('Firebase %s has no "kid" claim.', $this->shortName);
@@ -224,7 +234,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @param Token $idToken
      * @return bool
      */
-    private function isCustomToken(Token $idToken): bool {
+    private function isCustomToken(Token $idToken): bool
+    {
         return self::FIREBASE_AUDIENCE === $idToken->getClaim('aud', false);
     }
 
@@ -232,7 +243,8 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @param Token $idToken
      * @return bool
      */
-    private function isLegacyCustomToken(Token $idToken): bool {
+    private function isLegacyCustomToken(Token $idToken): bool
+    {
         $algorithm = $idToken->getHeader('alg', false);
         $v = intval($idToken->getClaim('v', -1));
         return $algorithm === (new Hmac\Sha256())->getAlgorithmId() && $v === 0 && $this->containsLegacyUidField($idToken);
@@ -242,25 +254,28 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
      * @param Token $idToken
      * @return bool
      */
-    private function containsLegacyUidField(Token $idToken): bool {
+    private function containsLegacyUidField(Token $idToken): bool
+    {
         $dataField = $idToken->getClaim('d', false);
-        if(is_array($dataField)) {
+        if (is_array($dataField)) {
             return isset($dataField['uid']);
         }
-        if(is_object($dataField)) {
+        if (is_object($dataField)) {
             return isset($dataField->uid);
         }
         return false;
     }
 
-    private function getProjectIdMatchMessage() {
+    private function getProjectIdMatchMessage()
+    {
         return sprintf('Make sure the %s comes from the same Firebase project as the service account used to  authenticate this SDK.', $this->shortName);
     }
 
-    private function verifyTimestamp(Token $idToken) {
+    private function verifyTimestamp(Token $idToken)
+    {
         $iat = intval($idToken->getClaim('iat', -1));
         $currentTimeSeconds = Carbon::now()->timestamp;
-        if($iat === -1 || $iat > $currentTimeSeconds) {
+        if ($iat === -1 || $iat > $currentTimeSeconds) {
             return false;
         }
         $nowLeeway = $currentTimeSeconds - $this->idTokenVerifier->getAcceptableTimeSkewSeconds();

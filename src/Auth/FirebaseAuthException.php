@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\FirebaseException;
 use Firebase\Util\Validator\Validator;
 use Throwable;

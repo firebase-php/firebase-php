@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\DownloadAccountResponse;
 use Firebase\Auth\Internal\EmailLinkType;
 use Firebase\Auth\Internal\GetAccountInfoResponse;
@@ -74,14 +73,15 @@ class FirebaseUserManager
         $this->httpClient = new Client();
     }
 
-    public function getUserById(string $uid): UserRecord {
+    public function getUserById(string $uid): UserRecord
+    {
         $payload = ['localId' => [$uid]];
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
         $instance = GetAccountInfoResponse::build($response);
-        if(empty($instance->getUsers())) {
+        if (empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided user ID: $uid"
@@ -90,14 +90,15 @@ class FirebaseUserManager
         return new UserRecord($instance->getUsers()[0]);
     }
 
-    public function getUserByEmail(string $email): UserRecord {
+    public function getUserByEmail(string $email): UserRecord
+    {
         $payload = ['email' => [$email]];
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
         $instance = GetAccountInfoResponse::build($response);
-        if(empty($instance->getUsers())) {
+        if (empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided email: $email"
@@ -106,14 +107,15 @@ class FirebaseUserManager
         return new UserRecord($instance->getUsers()[0]);
     }
 
-    public function getUserByPhoneNumber(string $phoneNumber): UserRecord {
+    public function getUserByPhoneNumber(string $phoneNumber): UserRecord
+    {
         $payload = ['phoneNumber' => [$phoneNumber]];
         $response = $this->post(
             '/accounts:lookup',
             $payload
         );
         $instance = GetAccountInfoResponse::build($response);
-        if(empty($instance->getUsers())) {
+        if (empty($instance->getUsers())) {
             throw new FirebaseAuthException(
                 self::USER_NOT_FOUND_ERROR,
                 "No user record found for the provided phone number: $phoneNumber"
@@ -127,14 +129,15 @@ class FirebaseUserManager
      * @return string
      * @throws FirebaseAuthException
      */
-    public function createUser(CreateRequest $request) {
+    public function createUser(CreateRequest $request)
+    {
         $response = $this->post(
             '/accounts',
             $request->getProperties()
         );
-        if(!empty($response)) {
+        if (!empty($response)) {
             $uid = $response['localId'];
-            if(is_string($uid) && !empty($uid)) {
+            if (is_string($uid) && !empty($uid)) {
                 return $uid;
             }
         }
@@ -145,12 +148,13 @@ class FirebaseUserManager
      * @param UpdateRequest $request
      * @throws FirebaseAuthException
      */
-    public function updateUser(UpdateRequest $request) {
+    public function updateUser(UpdateRequest $request)
+    {
         $response = $this->post(
             '/accounts:update',
             $request->getProperties()
         );
-        if(empty($response) || $request->getUid() !== $response['localId']) {
+        if (empty($response) || $request->getUid() !== $response['localId']) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to update user: ' . $request->getUid());
         }
     }
@@ -159,13 +163,14 @@ class FirebaseUserManager
      * @param string $uid
      * @throws FirebaseAuthException
      */
-    public function deleteUser(string $uid) {
+    public function deleteUser(string $uid)
+    {
         $payload = ['localId' => $uid];
         $response = $this->post(
             '/accounts:delete',
             $payload
         );
-        if(empty($response) || !isset($response['kind'])) {
+        if (empty($response) || !isset($response['kind'])) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, "Failed to delete user: $uid");
         }
     }
@@ -176,29 +181,31 @@ class FirebaseUserManager
      * @return DownloadAccountResponse|null
      * @throws FirebaseAuthException
      */
-    public function listUsers(int $maxResults, ?string $pageToken = null) {
+    public function listUsers(int $maxResults, ?string $pageToken = null)
+    {
         $payload = ['maxResults' => $maxResults];
-        if(is_string($pageToken)) {
+        if (is_string($pageToken)) {
             $payload['nextPageToken'] = $pageToken;
         }
         $path = '/accounts:batchGet';
         $response = $this->sendRequest('GET', $path, [], ['query' => $payload]);
         $instance = DownloadAccountResponse::build($response);
-        if(empty($instance)) {
+        if (empty($instance)) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to retrieve users');
         }
 
         return $instance;
     }
 
-    public function importUsers(UserImportRequest $request = null): UserImportResult {
+    public function importUsers(UserImportRequest $request = null): UserImportResult
+    {
         Validator::isNonNullObject($request);
         $response = $this->post(
             '/accounts:batchCreate',
             $request->getPayload()
         );
         $instance = UploadAccountResponse::build($response);
-        if(empty($instance)) {
+        if (empty($instance)) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to import users');
         }
 
@@ -214,9 +221,9 @@ class FirebaseUserManager
             'validDuration' => $options->getExpiresInSeconds()
         ];
         $response = $this->post(':createSessionCookie', $payload);
-        if(!empty($response)) {
+        if (!empty($response)) {
             $cookie = $response['sessionCookie'];
-            if(!empty($cookie)) {
+            if (!empty($cookie)) {
                 return $cookie;
             }
         }
@@ -234,13 +241,13 @@ class FirebaseUserManager
             'email' => $email,
             'returnOobLink' => true
         ];
-        if(!is_null($settings)) {
+        if (!is_null($settings)) {
             $payload = array_merge($payload, $settings->getProperties());
         }
         $response = $this->post('/accounts:sendOobCode', $payload);
-        if(!empty($response)) {
+        if (!empty($response)) {
             $link = $response['oobLink'];
-            if(!empty($link)) {
+            if (!empty($link)) {
                 return $link;
             }
         }
@@ -248,7 +255,8 @@ class FirebaseUserManager
         throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Failed to create email action link');
     }
 
-    private function post(string $path, array $content) {
+    private function post(string $path, array $content)
+    {
         Validator::isNonEmptyString($path, 'Path must not be null or empty');
         Validator::isNonNullObject($content, 'Content must not be null for POST requests');
         return $this->sendRequest('POST', $path, $content);
@@ -276,7 +284,7 @@ class FirebaseUserManager
             $body = null;
             $query = '';
             $uri = new Uri($this->baseUrl . $path);
-            if($method === 'GET') {
+            if ($method === 'GET') {
                 $query = !isset($requestOptions['query']) ? '' : build_query($requestOptions['query']);
             } else {
                 $body = empty($content) ? '{}' : json_encode($content);
@@ -303,20 +311,22 @@ class FirebaseUserManager
         }
     }
 
-    private function handleHttpError(ClientException $e) {
+    private function handleHttpError(ClientException $e)
+    {
         $contents = $e->getResponse()->getBody()->getContents();
         try {
             $arr = json_decode($contents, true);
             $code = self::ERROR_CODES[$arr['error']['message']] ?? null;
-            if(!is_null($code)) {
+            if (!is_null($code)) {
                 throw new FirebaseAuthException($code, 'User management service responded with an error', $e);
             }
         } catch (\RuntimeException $e) {
-
         }
 
         $msg = sprintf(
-            'Unexpected HTTP response with status %d; body: %s', $e->getCode(), $contents
+            'Unexpected HTTP response with status %d; body: %s',
+            $e->getCode(),
+            $contents
         );
 
         throw new FirebaseAuthException(self::INTERNAL_ERROR, $msg, $e);

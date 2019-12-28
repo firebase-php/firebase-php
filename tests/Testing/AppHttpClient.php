@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
 use Firebase\Util\Validator\Validator;
@@ -29,7 +28,7 @@ class AppHttpClient
 
     public function __construct(?FirebaseApp $app = null)
     {
-        if(is_null($app)) {
+        if (is_null($app)) {
             self::__construct(FirebaseApp::getInstance());
             return;
         }
@@ -39,7 +38,8 @@ class AppHttpClient
         $this->httpClient = $this->options->getHttpClient();
     }
 
-    public function put(?string $path, ?string $json) {
+    public function put(?string $path, ?string $json)
+    {
         $url = $this->options->getDatabaseUrl() . $path . '?access_token=' . $this->getToken();
         $request = new Request(
             'PUT',
@@ -53,7 +53,8 @@ class AppHttpClient
         return new ResponseInfo($response);
     }
 
-    private function getToken() {
+    private function getToken()
+    {
         return TestOnlyImplFirebaseTrampolines::getToken($this->app, false);
     }
 }

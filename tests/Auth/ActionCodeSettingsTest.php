@@ -8,26 +8,30 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class ActionCodeSettingsTest extends TestCase
 {
-    public function testNoUrl() {
+    public function testNoUrl()
+    {
         $this->expectException(InvalidArgumentException::class);
         ActionCodeSettings::builder()->build();
     }
 
-    public function testMalformedUrl() {
+    public function testMalformedUrl()
+    {
         $this->expectException(InvalidArgumentException::class);
         ActionCodeSettings::builder()
             ->setUrl('not a url')
             ->build();
     }
 
-    public function testEmptyUrl() {
+    public function testEmptyUrl()
+    {
         $this->expectException(InvalidArgumentException::class);
         ActionCodeSettings::builder()
             ->setUrl('')
             ->build();
     }
 
-    public function testUrlOnly() {
+    public function testUrlOnly()
+    {
         $settings = ActionCodeSettings::builder()
             ->setUrl('https://example.com')
             ->build();
@@ -38,7 +42,8 @@ class ActionCodeSettingsTest extends TestCase
         self::assertEquals($expected, $settings->getProperties());
     }
 
-    public function testNoAndroidPackageName() {
+    public function testNoAndroidPackageName()
+    {
         $this->expectException(InvalidArgumentException::class);
         ActionCodeSettings::builder()
             ->setUrl('https://example.com')
@@ -47,7 +52,8 @@ class ActionCodeSettingsTest extends TestCase
             ->build();
     }
 
-    public function testAllSettings() {
+    public function testAllSettings()
+    {
         $settings = ActionCodeSettings::builder()
             ->setUrl('https://example.com')
             ->setHandleCodeInApp(true)

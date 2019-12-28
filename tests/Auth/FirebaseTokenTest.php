@@ -8,7 +8,8 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FirebaseTokenTest extends TestCase
 {
-    public function testFirebaseToken() {
+    public function testFirebaseToken()
+    {
         $claims = [
             'sub' => 'testUser',
             'iss' => 'test-project-id',
@@ -29,7 +30,8 @@ class FirebaseTokenTest extends TestCase
         self::assertEquals(7, count($token->getClaims()));
     }
 
-    public function testFirebaseTokenMinimal() {
+    public function testFirebaseTokenMinimal()
+    {
         $claims = [
             'sub' => 'testUser'
         ];
@@ -44,12 +46,14 @@ class FirebaseTokenTest extends TestCase
         self::assertEquals(1, count($token->getClaims()));
     }
 
-    public function testFirebaseTokenNullClaims() {
+    public function testFirebaseTokenNullClaims()
+    {
         $this->expectException(InvalidArgumentException::class);
         new FirebaseToken(null);
     }
 
-    public function testFirebaseTokenNoUid() {
+    public function testFirebaseTokenNoUid()
+    {
         $claims = [
             'custom' => 'claim'
         ];

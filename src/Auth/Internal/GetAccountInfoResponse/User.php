@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal\GetAccountInfoResponse;
 
-
 use Firebase\Auth\Internal\ResponseBuilder;
 
 class User implements ResponseBuilder
@@ -171,8 +170,9 @@ class User implements ResponseBuilder
      * @param array $content
      * @return static
      */
-    public static function build(array $content = null) {
-        if(empty($content)) {
+    public static function build(array $content = null)
+    {
+        if (empty($content)) {
             return null;
         }
         $user = new static();
@@ -185,8 +185,8 @@ class User implements ResponseBuilder
         $user->disabled = $content['disabled'] ?? false;
         $user->providers = [];
         $providers = $content['providerUserInfo'] ?? [];
-        if(is_array($providers)) {
-            foreach($providers as $provider) {
+        if (is_array($providers)) {
+            foreach ($providers as $provider) {
                 $user->providers[] = Provider::build($provider);
             }
         }

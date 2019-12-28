@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\FirebaseTokenFactory;
 use Firebase\FirebaseApp;
 
@@ -101,7 +100,8 @@ class FirebaseAuthBuilder
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         return new FirebaseAuth($this);
     }
 }

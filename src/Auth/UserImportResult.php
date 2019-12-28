@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\UploadAccountResponse;
 use Firebase\Util\Validator\Validator;
 
@@ -24,10 +23,10 @@ final class UserImportResult
         /** @var ErrorInfo[] $errorBuilder */
         $errorBuilder = [];
         $errors = $response->getErrors();
-        if(!is_null($errors)) {
+        if (!is_null($errors)) {
             Validator::checkArgument($users > count($errors));
 
-            foreach($errors as $error) {
+            foreach ($errors as $error) {
                 $errorBuilder[] = new ErrorInfo($error->getIndex(), $error->getMessage());
             }
         }
@@ -35,11 +34,13 @@ final class UserImportResult
         $this->errors = $errorBuilder;
     }
 
-    public function getSuccessCount() {
+    public function getSuccessCount()
+    {
         return $this->users - count($this->errors);
     }
 
-    public function getFailureAccount() {
+    public function getFailureAccount()
+    {
         return count($this->errors);
     }
 

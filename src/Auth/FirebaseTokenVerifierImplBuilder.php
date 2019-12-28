@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\GooglePublicKeysManager;
 use Firebase\Auth\Internal\IdTokenVerifier;
 
@@ -34,7 +33,8 @@ class FirebaseTokenVerifierImplBuilder
      */
     private $idTokenVerifier;
 
-    public function build() {
+    public function build()
+    {
         return new FirebaseTokenVerifierImpl($this);
     }
 

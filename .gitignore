@@ -10,3 +10,4 @@ composer.lock
 
 integration_cert.json
 integration_apikey.txt
+.php_cs.cache

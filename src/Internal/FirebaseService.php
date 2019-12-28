@@ -3,7 +3,6 @@
 
 namespace Firebase\Internal;
 
-
 use Firebase\Util\Validator\Validator;
 
 abstract class FirebaseService
@@ -34,5 +33,5 @@ abstract class FirebaseService
         return $this->instance;
     }
 
-    public abstract function destroy();
+    abstract public function destroy();
 }

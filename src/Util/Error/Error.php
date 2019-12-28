@@ -2,10 +2,10 @@
 
 namespace Firebase\Util\Error;
 
-
 class Error
 {
-    public static function authServerToClientCode(): array {
+    public static function authServerToClientCode(): array
+    {
         return [
             'BILLING_NOT_ENABLED' => 'BILLING_NOT_ENABLED',
             'CLAIMS_TOO_LARGE' => 'CLAIMS_TOO_LARGE',

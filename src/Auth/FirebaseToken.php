@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Util\Validator\Validator;
 
 final class FirebaseToken
@@ -24,31 +23,38 @@ final class FirebaseToken
         $this->claims = array_replace([], $claims);
     }
 
-    public function getUid(): ?string {
+    public function getUid(): ?string
+    {
         return $this->claims['sub'] ?? null;
     }
 
-    public function getIssuer(): ?string {
+    public function getIssuer(): ?string
+    {
         return $this->claims['iss'] ?? null;
     }
 
-    public function getName(): ?string {
+    public function getName(): ?string
+    {
         return $this->claims['name'] ?? null;
     }
 
-    public function getPicture(): ?string {
+    public function getPicture(): ?string
+    {
         return $this->claims['picture'] ?? null;
     }
 
-    public function getEmail(): ?string {
+    public function getEmail(): ?string
+    {
         return $this->claims['email'] ?? null;
     }
 
-    public function isEmailVerified(): ?bool {
+    public function isEmailVerified(): ?bool
+    {
         return $this->claims['email_verified'] ?? false;
     }
 
-    public function getClaims(): ?array {
+    public function getClaims(): ?array
+    {
         return $this->claims;
     }
 }

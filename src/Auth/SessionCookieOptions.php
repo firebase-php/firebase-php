@@ -20,7 +20,8 @@ class SessionCookieOptions
         $this->expiresIn = $builder->getExpiresIn();
     }
 
-    public function getExpiresInSeconds() {
+    public function getExpiresInSeconds()
+    {
         return CarbonInterval::millisecond($this->expiresIn)->totalSeconds;
     }
 }

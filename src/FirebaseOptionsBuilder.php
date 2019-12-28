@@ -55,8 +55,9 @@ class FirebaseOptionsBuilder
     private $httpClient;
 
 
-    public function __construct(FirebaseOptions $options = null) {
-        if(is_null($options)) {
+    public function __construct(FirebaseOptions $options = null)
+    {
+        if (is_null($options)) {
             return;
         }
         $this->databaseUrl = $options->getDatabaseUrl();
@@ -234,7 +235,8 @@ class FirebaseOptionsBuilder
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         return new FirebaseOptions($this);
     }
 }

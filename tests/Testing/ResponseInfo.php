@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Psr\Http\Message\ResponseInterface;
 
 class ResponseInfo

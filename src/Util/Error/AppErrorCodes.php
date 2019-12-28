@@ -3,7 +3,6 @@
 
 namespace Firebase\Util\Error;
 
-
 class AppErrorCodes
 {
     const APP_DELETED = 'app-deleted';

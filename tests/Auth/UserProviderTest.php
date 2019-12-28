@@ -3,14 +3,14 @@
 
 namespace Firebase\Tests\Auth;
 
-
 use Firebase\Auth\UserProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class UserProviderTest extends TestCase
 {
-    public function testAllProperties() {
+    public function testAllProperties()
+    {
         $provider = UserProvider::builder()
             ->setUid('testuid')
             ->setProviderId('google.com')
@@ -30,7 +30,8 @@ class UserProviderTest extends TestCase
         $this->assertEquals($expected, $parsed);
     }
 
-    public function testRequiredProperties() {
+    public function testRequiredProperties()
+    {
         $provider = UserProvider::builder()
             ->setUid('testuid')
             ->setProviderId('google.com')
@@ -44,14 +45,16 @@ class UserProviderTest extends TestCase
         $this->assertEquals($expected, $parsed);
     }
 
-    public function testNoUid() {
+    public function testNoUid()
+    {
         $this->expectException(InvalidArgumentException::class);
         UserProvider::builder()
             ->setProviderId('google.com')
             ->build();
     }
 
-    public function testNoProviderId() {
+    public function testNoProviderId()
+    {
         $this->expectException(InvalidArgumentException::class);
         UserProvider::builder()
             ->setUid('testuid')

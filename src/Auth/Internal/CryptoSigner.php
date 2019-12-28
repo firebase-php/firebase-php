@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 interface CryptoSigner
 {
     /**

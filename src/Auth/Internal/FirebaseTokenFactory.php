@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 use Carbon\Carbon;
 use Firebase\Util\Validator\Validator;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
@@ -21,7 +20,8 @@ class FirebaseTokenFactory
         $this->signer = $signer;
     }
 
-    public function createSignedCustomAuthTokenForUser(?string $uid, ?array $developerClaims = null) {
+    public function createSignedCustomAuthTokenForUser(?string $uid, ?array $developerClaims = null)
+    {
         Validator::isUid($uid);
 
         $header = [
@@ -38,12 +38,12 @@ class FirebaseTokenFactory
             'exp' => $iat + self::TOKEN_DURATION_SECONDS
         ];
 
-        if(!is_null($developerClaims)) {
+        if (!is_null($developerClaims)) {
             $reservedNames = array_keys($payload);
-            foreach($developerClaims as $key => $claim) {
+            foreach ($developerClaims as $key => $claim) {
                 Validator::checkArgument(!in_array($key, $reservedNames), sprintf('developerClaims must not contain a reserved key: %s', $key));
             }
-            if(!empty($developerClaims)) {
+            if (!empty($developerClaims)) {
                 $payload['claims'] = $developerClaims;
             }
         }
@@ -51,7 +51,8 @@ class FirebaseTokenFactory
         return $this->signPayload($header, $payload);
     }
 
-    private function signPayload(array $header = [], array $payload = []) {
+    private function signPayload(array $header = [], array $payload = [])
+    {
         $headerString = base64_encode(json_encode($header));
         $payloadString = base64_encode(json_encode($payload));
         $content = sprintf('%s.%s', $headerString, $payloadString);

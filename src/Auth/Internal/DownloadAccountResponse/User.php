@@ -24,7 +24,7 @@ class User extends GetAccountInfoResponse\User
      */
     public static function build(array $content = null)
     {
-        if(empty($content)) {
+        if (empty($content)) {
             return null;
         }
         /** @var User $user */

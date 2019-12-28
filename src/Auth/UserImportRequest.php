@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Util\Validator\Validator;
 
 class UserImportRequest
@@ -26,13 +25,13 @@ class UserImportRequest
         );
         $hasPassword = false;
         $this->users = [];
-        foreach($users as $user) {
-            if($user->hasPassword()) {
+        foreach ($users as $user) {
+            if ($user->hasPassword()) {
                 $hasPassword = true;
             }
             $this->users[] = $user->getProperties();
         }
-        if($hasPassword) {
+        if ($hasPassword) {
             Validator::checkArgument(
                 !is_null($options) && !is_null($options->getHash()),
                 'UserImportHash option is required when at least one user has a password. Provide '
@@ -42,11 +41,13 @@ class UserImportRequest
         $this->payload = array_merge(['users' => $this->users], $options);
     }
 
-    public function getUsersCount() {
+    public function getUsersCount()
+    {
         return count($this->users);
     }
 
-    public function getPayload() {
+    public function getPayload()
+    {
         return $this->payload;
     }
 }

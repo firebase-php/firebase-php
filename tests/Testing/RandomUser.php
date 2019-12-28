@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Faker\Factory;
 
 class RandomUser
@@ -18,7 +17,8 @@ class RandomUser
         $this->email = $email;
     }
 
-    static function create() {
+    public static function create()
+    {
         $faker = Factory::create();
         $uid = str_replace('-', '', $faker->uuid);
         $email = strtolower(

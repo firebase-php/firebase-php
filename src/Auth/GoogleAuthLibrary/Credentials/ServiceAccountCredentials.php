@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\GoogleAuthLibrary\Credentials;
 
-
 use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 
 class ServiceAccountCredentials extends \Google\Auth\Credentials\ServiceAccountCredentials
@@ -24,7 +23,7 @@ class ServiceAccountCredentials extends \Google\Auth\Credentials\ServiceAccountC
      */
     public function getProjectId()
     {
-        if(!empty($this->projectId)) {
+        if (!empty($this->projectId)) {
             return $this->projectId;
         }
         $env = self::fromEnv();

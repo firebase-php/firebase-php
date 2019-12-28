@@ -13,10 +13,11 @@ class CryptoSigners
 {
     private const METADATA_SERVICE_URL = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email';
 
-    public static function getCryptoSigner(FirebaseApp $firebaseApp) {
+    public static function getCryptoSigner(FirebaseApp $firebaseApp)
+    {
         $credentials = ImplFirebaseTrampolines::getCredentials($firebaseApp);
 
-        if($credentials instanceof ServiceAccountCredentials) {
+        if ($credentials instanceof ServiceAccountCredentials) {
             return new ServiceAccountSigner($credentials);
         }
 
@@ -27,7 +28,7 @@ class CryptoSigners
         $serviceAccountId = $options->getServiceAccountId();
         $httpClient = $options->getHttpClient() ?? new Client();
 
-        if(!empty($serviceAccountId)) {
+        if (!empty($serviceAccountId)) {
             return new IAMSigner($serviceAccountId, $httpClient);
         }
 

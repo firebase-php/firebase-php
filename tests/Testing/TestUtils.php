@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 use Firebase\FirebaseOptions;
 use Firebase\Util\Validator\Validator;
@@ -26,9 +25,10 @@ class TestUtils
 
     private static $defaultCredentials = null;
 
-    public static function verifySignature(Token $token, array $keys = []) {
-        foreach($keys as $key) {
-            if($token->verify(new Sha256(), $key)) {
+    public static function verifySignature(Token $token, array $keys = [])
+    {
+        foreach ($keys as $key) {
+            if ($token->verify(new Sha256(), $key)) {
                 return true;
             }
         }
@@ -39,8 +39,9 @@ class TestUtils
     /**
      * @param array $vars
      */
-    public static function setEnvironmentVariables(array $vars = []) {
-        foreach($vars as $key => $var) {
+    public static function setEnvironmentVariables(array $vars = [])
+    {
+        foreach ($vars as $key => $var) {
             putenv(sprintf('%s=%s', $key, $var));
         }
     }
@@ -48,8 +49,9 @@ class TestUtils
     /**
      * @param string[] $vars
      */
-    public static function unsetEnvironmentVariables(array $vars = []) {
-        foreach($vars as $var) {
+    public static function unsetEnvironmentVariables(array $vars = [])
+    {
+        foreach ($vars as $var) {
             putenv($var);
         }
     }
@@ -58,8 +60,9 @@ class TestUtils
      * @param ServiceAccount|array $serviceAccount
      * @return \Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\UserRefreshCredentials
      */
-    public static function getCertCredential($serviceAccount) {
-        if(is_array($serviceAccount)) {
+    public static function getCertCredential($serviceAccount)
+    {
+        if (is_array($serviceAccount)) {
             return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount);
         }
         return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount->asArray());
@@ -69,14 +72,16 @@ class TestUtils
      * @param string $path
      * @return false|string
      */
-    public static function loadResource(string $path) {
+    public static function loadResource(string $path)
+    {
         $fileContents = file_get_contents(__DIR__ . '/../fixtures' . $path);
         Validator::checkArgument($fileContents !== false, sprintf('Failed to load resource: %s', $path));
         return $fileContents;
     }
 
-    public static function getApplicationDefaultCredentials() {
-        if(!is_null(self::$defaultCredentials)) {
+    public static function getApplicationDefaultCredentials()
+    {
+        if (!is_null(self::$defaultCredentials)) {
             return self::$defaultCredentials;
         }
         $serviceAccountPath = realpath(__DIR__ . '/../fixtures/service_accounts/editor.json');
@@ -86,7 +91,8 @@ class TestUtils
         return ApplicationDefaultCredentials::getCredentials(null, self::getMockHandler());
     }
 
-    public static function getMockHandler() {
+    public static function getMockHandler()
+    {
         $mock = new MockHandler([
             new Response(
                 200,

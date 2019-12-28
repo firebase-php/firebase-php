@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 
@@ -15,7 +14,7 @@ class GooglePublicKeysManagerBuilder
 
     public function __construct(?ClientInterface $httpClient = null)
     {
-        if(!$httpClient) {
+        if (!$httpClient) {
             $this->httpClient = new Client();
         } else {
             $this->httpClient = $httpClient;
@@ -23,7 +22,8 @@ class GooglePublicKeysManagerBuilder
         $this->publicCertsEncodeUrl = 'https://www.googleapis.com/oauth2/v1/certs';
     }
 
-    public function build() {
+    public function build()
+    {
         return new GooglePublicKeysManager($this);
     }
 

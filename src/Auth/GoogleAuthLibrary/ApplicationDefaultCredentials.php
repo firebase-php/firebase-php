@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\GoogleAuthLibrary;
 
-
 use Google\Auth\Credentials\AppIdentityCredentials;
 use Google\Auth\Credentials\GCECredentials;
 use Google\Auth\FetchAuthTokenCache;

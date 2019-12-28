@@ -3,7 +3,6 @@
 
 namespace Firebase\Util\Error;
 
-
 class AuthClientErrorCode
 {
     const BILLING_NOT_ENABLED = [

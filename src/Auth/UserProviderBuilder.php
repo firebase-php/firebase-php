@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 final class UserProviderBuilder
 {
     /**
@@ -124,7 +123,8 @@ final class UserProviderBuilder
     /**
      * @return UserProvider
      */
-    public function build() {
+    public function build()
+    {
         return new UserProvider($this);
     }
 }

@@ -62,22 +62,24 @@ class FirebaseAuth
      * @return FirebaseAuth
      * @throws \Exception
      */
-    public static function getInstance(?FirebaseApp $app = null) {
-        if(is_null($app)) {
+    public static function getInstance(?FirebaseApp $app = null)
+    {
+        if (is_null($app)) {
             return self::getInstance(FirebaseApp::getInstance());
-        } elseif($app->isDeleted()) {
+        } elseif ($app->isDeleted()) {
             throw new \Exception('App is deleted');
         }
 
         $service = ImplFirebaseTrampolines::getService($app, self::SERVICE_ID, FirebaseAuthService::class);
-        if(is_null($service)) {
+        if (is_null($service)) {
             $service = ImplFirebaseTrampolines::addService($app, new FirebaseAuthService($app));
         }
 
         return $service->getInstance();
     }
 
-    public static function fromApp(FirebaseApp $app) {
+    public static function fromApp(FirebaseApp $app)
+    {
         return (new FirebaseAuthBuilder())
             ->setFirebaseApp($app)
             ->setTokenFactory(FirebaseTokenUtils::createTokenFactory($app))
@@ -86,20 +88,23 @@ class FirebaseAuth
             ->build();
     }
 
-    public function createSessionCookie(string $idToken, SessionCookieOptions $options) {
+    public function createSessionCookie(string $idToken, SessionCookieOptions $options)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($idToken, 'IdToken must not be null or empty');
         Validator::isNonNullObject($options, 'options must not be null');
         return $this->getUserManager()->createSessionCookie($idToken, $options);
     }
 
-    public function verifySessionCookie(?string $cookie, ?bool $checkRevoked = false) {
+    public function verifySessionCookie(?string $cookie, ?bool $checkRevoked = false)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($cookie, 'Session cookie must not be null or empty');
         return $this->getSessionCookieVerifier($checkRevoked)->verifyToken($cookie);
     }
 
-    public function createCustomToken(string $uid, array $developerClaims = []) {
+    public function createCustomToken(string $uid, array $developerClaims = [])
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         try {
@@ -109,13 +114,15 @@ class FirebaseAuth
         }
     }
 
-    public function verifyIdToken(string $token, bool $checkRevoked = false) {
+    public function verifyIdToken(string $token, bool $checkRevoked = false)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($token, 'ID token must not be null or empty');
         return $this->getIdTokenVerifier()->verifyToken($token);
     }
 
-    public function revokeRefreshToken(string $uid) {
+    public function revokeRefreshToken(string $uid)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         $currentTimeSeconds = intval(Carbon::now()->timestamp/1000);
@@ -123,30 +130,35 @@ class FirebaseAuth
         $this->getUserManager()->updateUser($request);
     }
 
-    public function getUser(string $uid) {
+    public function getUser(string $uid)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         return $this->getUserManager()->getUserById($uid);
     }
 
-    public function getUserByEmail(string $email) {
+    public function getUserByEmail(string $email)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($email, 'email must not be null or empty');
         return $this->getUserManager()->getUserByEmail($email);
     }
 
-    public function getUserByPhoneNumber(string $phoneNumber) {
+    public function getUserByPhoneNumber(string $phoneNumber)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($phoneNumber, 'phone number must not be null or empty');
         return $this->getUserManager()->getUserByPhoneNumber($phoneNumber);
     }
 
-    public function listUsers(?string $pageToken = null, int $maxResults = FirebaseUserManager::MAX_LIST_USERS_RESULT) {
+    public function listUsers(?string $pageToken = null, int $maxResults = FirebaseUserManager::MAX_LIST_USERS_RESULT)
+    {
         $this->checkNotDestroyed();
         return $this->getUserManager()->listUsers($maxResults, $pageToken);
     }
 
-    public function createUser(CreateRequest $request = null) {
+    public function createUser(CreateRequest $request = null)
+    {
         $this->checkNotDestroyed();
         Validator::isNonNullObject($request, 'create request must not be null');
         $userManager = $this->getUserManager();
@@ -154,7 +166,8 @@ class FirebaseAuth
         return $userManager->getUserById($uid);
     }
 
-    public function updateUser(UpdateRequest $request = null) {
+    public function updateUser(UpdateRequest $request = null)
+    {
         $this->checkNotDestroyed();
         Validator::isNonNullObject($request, 'update request must not be null');
         $userManager = $this->getUserManager();
@@ -162,7 +175,8 @@ class FirebaseAuth
         return $userManager->getUserById($request->getUid());
     }
 
-    public function setCustomUserClaims(string $uid, ?array $claims = null) {
+    public function setCustomUserClaims(string $uid, ?array $claims = null)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         $userManager = $this->getUserManager();
@@ -171,7 +185,8 @@ class FirebaseAuth
         return null;
     }
 
-    public function deleteUser(string $uid) {
+    public function deleteUser(string $uid)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
         $this->getUserManager()->deleteUser($uid);
@@ -184,50 +199,58 @@ class FirebaseAuth
      * @return UserImportResult
      * @throws FirebaseAuthException
      */
-    public function importUsers(array $users = null, UserImportOptions $options = null) {
+    public function importUsers(array $users = null, UserImportOptions $options = null)
+    {
         $this->checkNotDestroyed();
         $request = new UserImportRequest($users, $options);
         return $this->getUserManager()->importUsers($request);
     }
 
-    public function generatePasswordResetLink(string $email, ActionCodeSettings $settings = null) {
+    public function generatePasswordResetLink(string $email, ActionCodeSettings $settings = null)
+    {
         return $this->generateEmailActionLink(EmailLinkType::PASSWORD_RESET(), $email, $settings);
     }
 
-    public function generateEmailVerificationLink(string $email, ActionCodeSettings $settings = null) {
+    public function generateEmailVerificationLink(string $email, ActionCodeSettings $settings = null)
+    {
         return $this->generateEmailActionLink(EmailLinkType::VERIFY_EMAIL(), $email, $settings);
     }
 
-    public function generateSignInWithEmailLink(string $email, ActionCodeSettings $settings = null) {
+    public function generateSignInWithEmailLink(string $email, ActionCodeSettings $settings = null)
+    {
         return $this->generateEmailActionLink(EmailLinkType::EMAIL_SIGNIN(), $email, $settings);
     }
 
-    private function generateEmailActionLink(EmailLinkType $type, string $email, ActionCodeSettings $settings = null) {
+    private function generateEmailActionLink(EmailLinkType $type, string $email, ActionCodeSettings $settings = null)
+    {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($email, 'email must not be null or empty');
-        if($type === EmailLinkType::EMAIL_SIGNIN()) {
+        if ($type === EmailLinkType::EMAIL_SIGNIN()) {
             Validator::isNonNullObject($settings, 'ActionCodeSettings must not be null when generating sign-in links');
         }
 
         return $this->getUserManager()->getEmailActionLink($type, $email, $settings);
     }
 
-    public function getUserManager() {
+    public function getUserManager()
+    {
         return $this->userManager;
     }
 
-    public function getSessionCookieVerifier(bool $checkRevoked = false) {
+    public function getSessionCookieVerifier(bool $checkRevoked = false)
+    {
         $verifier = $this->cookieVerifier;
-        if($checkRevoked) {
+        if ($checkRevoked) {
             $userManager = $this->getUserManager();
             $verifier = RevocationCheckDecorator::decorateSessionCookieVerifier($verifier, $userManager);
         }
         return $verifier;
     }
 
-    public function getIdTokenVerifier(bool $checkRevoked = false) {
+    public function getIdTokenVerifier(bool $checkRevoked = false)
+    {
         $verifier = $this->idTokenVerifier;
-        if($checkRevoked) {
+        if ($checkRevoked) {
             $userManager = $this->getUserManager();
             $verifier = RevocationCheckDecorator::decorateIdTokenVerifier($verifier, $userManager);
         }
@@ -235,15 +258,18 @@ class FirebaseAuth
         return $verifier;
     }
 
-    private function checkNotDestroyed() {
+    private function checkNotDestroyed()
+    {
         Validator::checkArgument(!$this->destroyed, 'FirebaseAuth instance is no longer alive. This happens when the parent FirebaseApp instance has been deleted.');
     }
 
-    public function destroy() {
+    public function destroy()
+    {
         $this->destroyed = true;
     }
 
-    static function builder() {
+    public static function builder()
+    {
         return new FirebaseAuthBuilder();
     }
 }

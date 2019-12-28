@@ -6,7 +6,8 @@ namespace Firebase\Auth\Internal;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\OAuth2;
 
-class IdTokenVerifier extends OAuth2 {
+class IdTokenVerifier extends OAuth2
+{
     const DEFAULT_TIME_SKEW_SECONDS = 300;
 
     /**

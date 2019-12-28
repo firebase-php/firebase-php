@@ -18,7 +18,8 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FirebaseAuthTest extends TestCase
 {
-    private static function FIREBASE_OPTIONS() {
+    private static function FIREBASE_OPTIONS()
+    {
         return FirebaseOptions::builder()
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
             ->build();
@@ -29,21 +30,24 @@ class FirebaseAuthTest extends TestCase
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
     }
 
-    public function testGetInstance() {
+    public function testGetInstance()
+    {
         FirebaseApp::initializeApp(self::FIREBASE_OPTIONS());
         $defaultAuth = FirebaseAuth::getInstance();
         self::assertNotNull($defaultAuth);
         self::assertSame($defaultAuth, FirebaseAuth::getInstance());
     }
 
-    public function testGetInstanceForApp() {
+    public function testGetInstanceForApp()
+    {
         $app = FirebaseApp::initializeApp(self::FIREBASE_OPTIONS(), 'testGetInstanceForApp');
         $auth = FirebaseAuth::getInstance($app);
         self::assertNotNull($auth);
         self::assertSame($auth, FirebaseAuth::getInstance($app));
     }
 
-    public function testAppDelete() {
+    public function testAppDelete()
+    {
         $app = FirebaseApp::initializeApp(self::FIREBASE_OPTIONS(), 'testAppDelete');
         $auth = FirebaseAuth::getInstance($app);
         self::assertNotNull($auth);
@@ -52,7 +56,8 @@ class FirebaseAuthTest extends TestCase
         FirebaseAuth::getInstance($app);
     }
 
-    public function testInitAfterAppDelete() {
+    public function testInitAfterAppDelete()
+    {
         $app = FirebaseApp::initializeApp(self::FIREBASE_OPTIONS(), 'testInitAfterAppDelete');
         $auth1 = FirebaseAuth::getInstance($app);
         self::assertNotNull($auth1);
@@ -64,7 +69,8 @@ class FirebaseAuthTest extends TestCase
         self::assertNotSame($auth1, $auth2);
     }
 
-    public function testProjectIdNotRequiredAtInitialization() {
+    public function testProjectIdNotRequiredAtInitialization()
+    {
         $options = FirebaseOptions::builder()
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
             ->build();
@@ -72,17 +78,20 @@ class FirebaseAuthTest extends TestCase
         self::assertNotNull(FirebaseAuth::getInstance($app));
     }
 
-    public function testAuthExceptionNullErrorCode() {
+    public function testAuthExceptionNullErrorCode()
+    {
         $this->expectException(InvalidArgumentException::class);
         new FirebaseAuthException(null, 'test');
     }
 
-    public function testAuthExceptionEmptyErrorCode() {
+    public function testAuthExceptionEmptyErrorCode()
+    {
         $this->expectException(InvalidArgumentException::class);
         new FirebaseAuthException('', 'test');
     }
 
-    public function testVerifyIdToken() {
+    public function testVerifyIdToken()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromResult($this->getFirebaseToken('testUser'));
         $auth = $this->getAuthForIdTokenVerification($tokenVerifier);
         $token = $auth->verifyIdToken('idtoken');
@@ -90,7 +99,8 @@ class FirebaseAuthTest extends TestCase
         self::assertEquals('idtoken', $tokenVerifier->getLastTokenString());
     }
 
-    public function testVerifyIdTokenFailure() {
+    public function testVerifyIdTokenFailure()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromException(
             new FirebaseAuthException('TEST_CODE', 'Test error message')
         );
@@ -105,7 +115,8 @@ class FirebaseAuthTest extends TestCase
         }
     }
 
-    public function testDefaultSessionCookieVerifier() {
+    public function testDefaultSessionCookieVerifier()
+    {
         FirebaseApp::initializeApp(self::FIREBASE_OPTIONS());
 
         $tokenVerifier = FirebaseAuth::getInstance()
@@ -118,7 +129,8 @@ class FirebaseAuthTest extends TestCase
         self::assertEquals('session cookie', $shortName);
     }
 
-    public function testVerifySessionCookieWithNull() {
+    public function testVerifySessionCookieWithNull()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromResult(null);
         $tokenVerifier->setLastTokenString('_init_');
         $auth = $this->getAuthForSessionCookieVerification($tokenVerifier);
@@ -131,7 +143,8 @@ class FirebaseAuthTest extends TestCase
         }
     }
 
-    public function testVerifySessionCookieWithEmptyString() {
+    public function testVerifySessionCookieWithEmptyString()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromResult(null);
         $tokenVerifier->setLastTokenString('_init_');
         $auth = $this->getAuthForSessionCookieVerification($tokenVerifier);
@@ -144,7 +157,8 @@ class FirebaseAuthTest extends TestCase
         }
     }
 
-    public function testVerifySessionCookie() {
+    public function testVerifySessionCookie()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromResult(
             $this->getFirebaseToken('testUser')
         );
@@ -154,7 +168,8 @@ class FirebaseAuthTest extends TestCase
         self::assertEquals('idtoken', $tokenVerifier->getLastTokenString());
     }
 
-    public function testVerifySessionCookieFailure() {
+    public function testVerifySessionCookieFailure()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromException(
             new FirebaseAuthException('TEST_CODE', 'Test error message')
         );
@@ -169,7 +184,8 @@ class FirebaseAuthTest extends TestCase
         }
     }
 
-    public function testVerifySessionCookieWithCheckRevokedFailure() {
+    public function testVerifySessionCookieWithCheckRevokedFailure()
+    {
         $tokenVerifier = self::MockTokenVerifier()::fromException(
             new FirebaseAuthException('TEST_CODE', 'Test error message')
         );
@@ -184,11 +200,13 @@ class FirebaseAuthTest extends TestCase
         }
     }
 
-    private function getFirebaseToken(?string $subject) {
+    private function getFirebaseToken(?string $subject)
+    {
         return new FirebaseToken(['sub' => $subject]);
     }
 
-    private function getAuthForIdTokenVerification(?FirebaseTokenVerifier $tokenVerifier = null) {
+    private function getAuthForIdTokenVerification(?FirebaseTokenVerifier $tokenVerifier = null)
+    {
         $app = FirebaseApp::initializeApp(self::FIREBASE_OPTIONS());
 
 
@@ -200,7 +218,8 @@ class FirebaseAuthTest extends TestCase
             ->build();
     }
 
-    private function getAuthForSessionCookieVerification(?FirebaseTokenVerifier $tokenVerifier = null) {
+    private function getAuthForSessionCookieVerification(?FirebaseTokenVerifier $tokenVerifier = null)
+    {
         $app = FirebaseApp::initializeApp(self::FIREBASE_OPTIONS());
 
 
@@ -212,7 +231,8 @@ class FirebaseAuthTest extends TestCase
             ->build();
     }
 
-    private static function MockTokenVerifier() {
+    private static function MockTokenVerifier()
+    {
         return new class implements FirebaseTokenVerifier {
             private $lastTokenString;
 
@@ -230,18 +250,20 @@ class FirebaseAuthTest extends TestCase
             {
                 $this->lastTokenString = $token;
 
-                if(!is_null($this->exception)) {
+                if (!is_null($this->exception)) {
                     throw $this->exception;
                 }
 
                 return $this->result;
             }
 
-            static function fromResult(?FirebaseToken $result) {
+            public static function fromResult(?FirebaseToken $result)
+            {
                 return new self($result, null);
             }
 
-            static function fromException(?FirebaseAuthException $exception) {
+            public static function fromException(?FirebaseAuthException $exception)
+            {
                 return new self(null, $exception);
             }
 

@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
 use Firebase\FirebaseOptionsBuilder;
@@ -29,15 +28,17 @@ class IntegrationTestUtils
      */
     private static $serviceAccount;
 
-    private static function itFilePath(string $path) {
+    private static function itFilePath(string $path)
+    {
         return realpath(__DIR__ . '/../fixtures/' . $path);
     }
 
-    private static function ensureServiceAccount() {
-        if(is_null(self::$serviceAccount)) {
+    private static function ensureServiceAccount()
+    {
+        if (is_null(self::$serviceAccount)) {
             try {
                 $contents = file_get_contents(self::itFilePath(self::IT_SERVICE_ACCOUNT_PATH));
-                if($contents === false) {
+                if ($contents === false) {
                     throw new \Exception();
                 }
                 self::$serviceAccount = json_decode($contents, true);
@@ -45,7 +46,8 @@ class IntegrationTestUtils
                 $msg = sprintf(
                     "Failed to read service account certificate from %s. "
                     . "Integration tests require a service account credential obtained from a Firebase "
-                    . "project. See CONTRIBUTING.md for more details.", self::itFilePath(self::IT_SERVICE_ACCOUNT_PATH)
+                    . "project. See CONTRIBUTING.md for more details.",
+                    self::itFilePath(self::IT_SERVICE_ACCOUNT_PATH)
                 );
                 throw new \RuntimeException($msg);
             }
@@ -54,40 +56,46 @@ class IntegrationTestUtils
         return self::$serviceAccount;
     }
 
-    static function getServiceAccountCertificate() {
+    public static function getServiceAccountCertificate()
+    {
         return self::ensureServiceAccount();
     }
 
-    static function getProjectId() {
+    public static function getProjectId()
+    {
         return self::$serviceAccount['project_id'] ?? '';
     }
 
-    static function getDatabaseUrl() {
+    public static function getDatabaseUrl()
+    {
         return sprintf(
             'https://%s.firebaseio.com',
             self::getProjectId()
         );
     }
 
-    static function getStorageBucket() {
+    public static function getStorageBucket()
+    {
         return sprintf(
             '%s.appspot.com',
             self::getProjectId()
         );
     }
 
-    static function getApiKey() {
-        if(is_null(self::$apiKey)) {
+    public static function getApiKey()
+    {
+        if (is_null(self::$apiKey)) {
             try {
                 self::$apiKey = file_get_contents(self::itFilePath(self::IT_API_KEY_PATH));
-                if(self::$apiKey === false) {
+                if (self::$apiKey === false) {
                     throw new \Exception();
                 }
             } catch (\Exception $e) {
                 $msg = sprintf(
                     'Failed to read API key from %s. '
                     . 'Integration tests require an API key obtained from a Firebase '
-                    . "project. See CONTRIBUTING.md for more details.", self::itFilePath(self::IT_API_KEY_PATH)
+                    . "project. See CONTRIBUTING.md for more details.",
+                    self::itFilePath(self::IT_API_KEY_PATH)
                 );
                 throw new \RuntimeException($msg);
             }
@@ -96,8 +104,9 @@ class IntegrationTestUtils
         return self::$apiKey;
     }
 
-    static function ensureDefaultApp() {
-        if(is_null(self::$masterApp)) {
+    public static function ensureDefaultApp()
+    {
+        if (is_null(self::$masterApp)) {
             $options = FirebaseOptions::builder()
                 ->setDatabaseUrl(self::getDatabaseUrl())
                 ->setStorageBucket(self::getStorageBucket())
@@ -110,7 +119,8 @@ class IntegrationTestUtils
         return self::$masterApp;
     }
 
-    static function initApp(?string $name = null) {
+    public static function initApp(?string $name = null)
+    {
         $options = (new FirebaseOptionsBuilder())
             ->setDatabaseUrl(self::getDatabaseUrl())
             ->setCredentials(TestUtils::getCertCredential(self::getServiceAccountCertificate()))

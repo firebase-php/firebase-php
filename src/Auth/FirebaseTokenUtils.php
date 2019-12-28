@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\CryptoSigners;
 use Firebase\Auth\Internal\FirebaseTokenFactory;
 use Firebase\Auth\Internal\GooglePublicKeysManagerBuilder;
@@ -24,11 +23,13 @@ final class FirebaseTokenUtils
 
     private const SESSION_COOKIE_ISSUER_PREFIX = 'https://session.firebase.google.com/';
 
-    public static function createTokenFactory(FirebaseApp $app) {
+    public static function createTokenFactory(FirebaseApp $app)
+    {
         return new FirebaseTokenFactory(CryptoSigners::getCryptoSigner($app));
     }
 
-    public static function createIdTokenVerifier(FirebaseApp $app) {
+    public static function createIdTokenVerifier(FirebaseApp $app)
+    {
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         Validator::isNonEmptyString($projectId, 'Must initialize FirebaseApp with a project ID to call verifyIdToken()');
         $idTokenVerifier = self::newIdTokenVerifier(self::ID_TOKEN_ISSUER_PREFIX, $projectId);
@@ -43,7 +44,8 @@ final class FirebaseTokenUtils
             ->build();
     }
 
-    public static function createSessionCookieVerifier(FirebaseApp $app) {
+    public static function createSessionCookieVerifier(FirebaseApp $app)
+    {
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         Validator::isNonEmptyString($projectId, 'Must initialize FirebaseApp with a project ID to call verifySessionCookie()');
         $idTokenVerifier = self::newIdTokenVerifier(self::SESSION_COOKIE_ISSUER_PREFIX, $projectId);
@@ -63,14 +65,16 @@ final class FirebaseTokenUtils
      * @param string $projectId
      * @return IdTokenVerifier
      */
-    private static function newIdTokenVerifier(string $issuerPrefix, string $projectId): IdTokenVerifier {
+    private static function newIdTokenVerifier(string $issuerPrefix, string $projectId): IdTokenVerifier
+    {
         $idTokenVerifier = new IdTokenVerifier([]);
         $idTokenVerifier->setAudience($projectId);
         $idTokenVerifier->setIssuer($issuerPrefix . $projectId);
         return $idTokenVerifier;
     }
 
-    private static function newPublicKeysManager(string $certUrl) {
+    private static function newPublicKeysManager(string $certUrl)
+    {
         return (new GooglePublicKeysManagerBuilder())
             ->setPublicCertsEncodeUrl($certUrl)
             ->build();

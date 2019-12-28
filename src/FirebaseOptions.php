@@ -3,7 +3,6 @@
 
 namespace Firebase;
 
-
 use Firebase\Util\Validator\Validator;
 use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
 use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
@@ -81,8 +80,8 @@ final class FirebaseOptions
         $this->credentials = Validator::isNonNullObject($builder->getCredentials(), 'FirebaseOptions must be initialized with setCredentials().');
         $this->databaseAuthVariableOverride = $builder->getDatabaseAuthVariableOverride();
         $this->projectId = $builder->getProjectId();
-        if(!empty($builder->getStorageBucket())) {
-            preg_match('/^gs:\/\//', $builder->getStorageBucket(), $matches);
+        if (!empty($builder->getStorageBucket())) {
+            preg_match('/^gs:\\/\\//', $builder->getStorageBucket(), $matches);
             Validator::checkArgument(empty($matches), 'StorageBucket must not include "gs://" prefix.');
         }
 
@@ -95,7 +94,8 @@ final class FirebaseOptions
         $this->readTimeout = $builder->getReadTimeout();
     }
 
-    public static function builder() {
+    public static function builder()
+    {
         return new FirebaseOptionsBuilder();
     }
 
@@ -174,7 +174,8 @@ final class FirebaseOptions
     /**
      * @return \Google\Auth\Middleware\AuthTokenMiddleware
      */
-    public static function getApplicationDefaultCredentials() {
+    public static function getApplicationDefaultCredentials()
+    {
         return ApplicationDefaultCredentials::getMiddleware(self::FIREBASE_SCOPES);
     }
 }

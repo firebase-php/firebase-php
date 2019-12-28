@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\UserRecord;
 
-
 use Firebase\Auth\Internal\GetAccountInfoResponse\User;
 use Firebase\Auth\UserRecord;
 use Firebase\Util\Validator\Validator;
@@ -16,13 +15,14 @@ final class UpdateRequest extends UserRecordRequest
         $this->properties['localId'] = $uid;
     }
 
-    public function getUid() {
+    public function getUid()
+    {
         return $this->properties['localId'];
     }
 
     public function setPhoneNumber(string $phoneNumber = null)
     {
-        if(!is_null($phoneNumber)) {
+        if (!is_null($phoneNumber)) {
             Validator::isPhoneNumber($phoneNumber);
         }
 
@@ -38,20 +38,22 @@ final class UpdateRequest extends UserRecordRequest
 
     public function setPhotoUrl(string $photoUrl = null)
     {
-        if(!is_null($photoUrl)) {
+        if (!is_null($photoUrl)) {
             Validator::isUid($photoUrl);
         }
         $this->properties['photoUrl'] = $photoUrl;
         return $this;
     }
 
-    public function setCustomClaims(?array $customClaims = null) {
+    public function setCustomClaims(?array $customClaims = null)
+    {
         UserRecord::checkCustomClaims($customClaims);
         $this->properties[UserRecord::CUSTOM_ATTRIBUTES] = is_null($customClaims) ? [] : $customClaims;
         return $this;
     }
 
-    public function setValidSince(int $epochSeconds) {
+    public function setValidSince(int $epochSeconds)
+    {
         UserRecord::checkValidSince($epochSeconds);
         $this->properties['validSince'] = $epochSeconds;
         return $this;
@@ -68,23 +70,23 @@ final class UpdateRequest extends UserRecordRequest
         $copy = array_replace([], $this->properties);
         $remove = [];
 
-        foreach(UserRecord::REMOVABLE_FIELDS as $key => $entry) {
-            if(in_array($key, array_keys($copy)) && is_null($copy[$key])) {
+        foreach (UserRecord::REMOVABLE_FIELDS as $key => $entry) {
+            if (in_array($key, array_keys($copy)) && is_null($copy[$key])) {
                 $remove[] = $entry;
                 unset($copy[$key]);
             }
         }
 
-        if(!empty($remove)) {
+        if (!empty($remove)) {
             $copy['deleteAttribute'] = array_replace([], $remove);
         }
 
-        if(in_array('phoneNumber', $copy) && is_null($copy['phoneNumber'])) {
+        if (in_array('phoneNumber', $copy) && is_null($copy['phoneNumber'])) {
             $copy['deleteProvider'] = ['phone'];
             unset($copy['phoneNumber']);
         }
 
-        if(isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
+        if (isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
             $customClaims = array_replace([], $copy[UserRecord::CUSTOM_ATTRIBUTES]);
             $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
         }

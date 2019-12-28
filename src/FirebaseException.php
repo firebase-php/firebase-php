@@ -3,7 +3,6 @@
 
 namespace Firebase;
 
-
 use Firebase\Util\Validator\Validator;
 use Throwable;
 

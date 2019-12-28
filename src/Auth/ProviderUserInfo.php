@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\GetAccountInfoResponse\Provider;
 
 class ProviderUserInfo implements UserInfo

@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal\GetAccountInfoResponse;
 
-
 use Firebase\Auth\Internal\ResponseBuilder;
 
 class Provider implements ResponseBuilder
@@ -87,8 +86,9 @@ class Provider implements ResponseBuilder
         return $this->providerId;
     }
 
-    public static function build(array $content = null) {
-        if(empty($content)) {
+    public static function build(array $content = null)
+    {
+        if (empty($content)) {
             return null;
         }
         $provider = new static();

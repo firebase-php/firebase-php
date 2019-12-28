@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Lcobucci\JWT\Builder;
@@ -29,14 +28,15 @@ class TestTokenFactory
         $this->issuer = $issuer;
     }
 
-    public function createToken(?array $header = null, ?array $payload = null, ?Signer $signer = null) {
-        if(is_null($header)) {
+    public function createToken(?array $header = null, ?array $payload = null, ?Signer $signer = null)
+    {
+        if (is_null($header)) {
             $header = $this->createHeader();
         }
-        if(is_null($payload)) {
+        if (is_null($payload)) {
             $payload = $this->createTokenPayload();
         }
-        if(is_null($signer)) {
+        if (is_null($signer)) {
             $signer = new Sha256();
         }
         return (new Builder())
@@ -49,7 +49,8 @@ class TestTokenFactory
             ->getToken($signer, new Key($this->privateKey));
     }
 
-    public function createHeader() {
+    public function createHeader()
+    {
         return [
             'alg' => (new Sha256())->getAlgorithmId(),
             'type' => 'JWT',
@@ -57,7 +58,8 @@ class TestTokenFactory
         ];
     }
 
-    public function createTokenPayload() {
+    public function createTokenPayload()
+    {
         $now = Carbon::now()->timestamp;
         return [
             'iss' => $this->issuer,

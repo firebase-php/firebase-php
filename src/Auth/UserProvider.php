@@ -44,7 +44,8 @@ final class UserProvider implements \JsonSerializable
         $this->providerId = $builder->getProviderId();
     }
 
-    public static function builder() {
+    public static function builder()
+    {
         return new UserProviderBuilder();
     }
 
@@ -54,13 +55,13 @@ final class UserProvider implements \JsonSerializable
             'rawId' => $this->uid,
             'providerId' => $this->providerId,
         ];
-        if(!empty($this->email)) {
+        if (!empty($this->email)) {
             $json['email'] = $this->email;
         }
-        if(!empty($this->photoUrl)) {
+        if (!empty($this->photoUrl)) {
             $json['photoUrl'] = $this->photoUrl;
         }
-        if(!empty($this->displayName)) {
+        if (!empty($this->displayName)) {
             $json['displayName'] = $this->displayName;
         }
         return $json;

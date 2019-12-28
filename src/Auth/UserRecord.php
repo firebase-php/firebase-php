@@ -101,7 +101,7 @@ class UserRecord implements UserInfo
         $this->displayName = $response->getDisplayName();
         $this->photoUrl = $response->getPhotoUrl();
         $this->disabled = $response->isDisabled();
-        if(empty($response->getProviders())) {
+        if (empty($response->getProviders())) {
             $this->providers = [];
         } else {
             foreach ($response->getProviders() as $provider) {
@@ -113,35 +113,41 @@ class UserRecord implements UserInfo
         $this->customClaims = $this->parseCustomClaims($response->getCustomClaims());
     }
 
-    public static function checkCustomClaims(array $customClaims = null) {
-        if(!is_array($customClaims)) {
+    public static function checkCustomClaims(array $customClaims = null)
+    {
+        if (!is_array($customClaims)) {
             return;
         }
 
-        foreach($customClaims as $key => $claim) {
+        foreach ($customClaims as $key => $claim) {
             Validator::isNonEmptyString($key, 'Claim names must not be null or empty');
             Validator::checkArgument(!in_array($key, FirebaseUserManager::RESERVED_CLAIMS), "Claim $key is reserved and cannot be set");
         }
     }
 
-    public static function checkValidSince(int $epochSeconds) {
+    public static function checkValidSince(int $epochSeconds)
+    {
         Validator::checkArgument($epochSeconds > 0, "validSince (seconds since epoch) must be greater than 0: $epochSeconds");
     }
 
-    public static function serializeCustomClaims(array $customClaims = null): string {
-        if(is_null($customClaims) || empty($customClaims)) {
+    public static function serializeCustomClaims(array $customClaims = null): string
+    {
+        if (is_null($customClaims) || empty($customClaims)) {
             return '{}';
         }
 
         $claimPayloads = json_encode($customClaims);
-        Validator::checkArgument(strlen($claimPayloads) <= self::MAX_CLAIMS_PAYLOAD_SIZE,
-            sprintf('Custom claims payload cannot be larger than %d characters', self::MAX_CLAIMS_PAYLOAD_SIZE));
+        Validator::checkArgument(
+            strlen($claimPayloads) <= self::MAX_CLAIMS_PAYLOAD_SIZE,
+            sprintf('Custom claims payload cannot be larger than %d characters', self::MAX_CLAIMS_PAYLOAD_SIZE)
+        );
 
         return $claimPayloads;
     }
 
-    private function parseCustomClaims(string $customClaims = null) {
-        if(empty($customClaims)) {
+    private function parseCustomClaims(string $customClaims = null)
+    {
+        if (empty($customClaims)) {
             return [];
         }
 
@@ -249,7 +255,8 @@ class UserRecord implements UserInfo
         return self::PROVIDER_ID;
     }
 
-    public function updateRequest() {
+    public function updateRequest()
+    {
         return new UpdateRequest($this->uid);
     }
 }

@@ -16,7 +16,8 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class FirebaseAppTest extends TestCase
 {
-    final private static function OPTIONS() {
+    final private static function OPTIONS()
+    {
         return (new FirebaseOptionsBuilder())
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
             ->build();
@@ -33,17 +34,20 @@ class FirebaseAppTest extends TestCase
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
     }
 
-    public function testNullAppName() {
+    public function testNullAppName()
+    {
         $this->expectException(InvalidArgumentException::class);
         FirebaseApp::initializeApp(self::OPTIONS(), null);
     }
 
-    public function testEmptyAppName() {
+    public function testEmptyAppName()
+    {
         $this->expectException(InvalidArgumentException::class);
         FirebaseApp::initializeApp(self::OPTIONS(), '');
     }
 
-    public function testGetInstancePersistedNotInitialized() {
+    public function testGetInstancePersistedNotInitialized()
+    {
         $name = 'myApp';
         FirebaseApp::initializeApp(self::OPTIONS(), $name);
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
@@ -52,7 +56,8 @@ class FirebaseAppTest extends TestCase
         FirebaseApp::getInstance($name);
     }
 
-    public function testGetProjectIdFromOptions() {
+    public function testGetProjectIdFromOptions()
+    {
         $dummyProjectId = 'explicit-project-id';
         $options = (new FirebaseOptionsBuilder(self::OPTIONS()))
             ->setProjectId($dummyProjectId)
@@ -62,13 +67,15 @@ class FirebaseAppTest extends TestCase
         $this->assertEquals($dummyProjectId, $projectId);
     }
 
-    public function testGetProjectIdFromCredential() {
+    public function testGetProjectIdFromCredential()
+    {
         $app = FirebaseApp::initializeApp(self::OPTIONS(), 'myApp');
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         $this->assertEquals("mock-project-id", $projectId);
     }
 
-    public function testGetProjectIdFromEnvironment() {
+    public function testGetProjectIdFromEnvironment()
+    {
         $variables = ['GCLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT'];
         foreach ($variables as $variable) {
             TestUtils::setEnvironmentVariables([$variable => 'project-id-1']);
@@ -85,7 +92,8 @@ class FirebaseAppTest extends TestCase
         }
     }
 
-    public function testProjectIdEnvironmentVariablePrecedence() {
+    public function testProjectIdEnvironmentVariablePrecedence()
+    {
         TestUtils::setEnvironmentVariables([
             'GCLOUD_PROJECT' => 'project-id-1',
             'GOOGLE_CLOUD_PROJECT' => 'project-id-2'
@@ -102,7 +110,8 @@ class FirebaseAppTest extends TestCase
         }
     }
 
-    public function testRehydratingDeletedInstanceThrows() {
+    public function testRehydratingDeletedInstanceThrows()
+    {
         $name = 'myApp';
         $firebaseApp = FirebaseApp::initializeApp(self::OPTIONS(), $name);
         $firebaseApp->delete();
@@ -111,7 +120,8 @@ class FirebaseAppTest extends TestCase
         FirebaseApp::getInstance($name);
     }
 
-    public function testDeleteDefaultApp() {
+    public function testDeleteDefaultApp()
+    {
         $app = FirebaseApp::initializeApp(self::OPTIONS());
         $this->assertEquals($app, FirebaseApp::getInstance());
         $app->delete();
@@ -119,7 +129,8 @@ class FirebaseAppTest extends TestCase
         FirebaseApp::getInstance();
     }
 
-    public function testDeleteApp() {
+    public function testDeleteApp()
+    {
         $name = 'myApp';
         $app = FirebaseApp::initializeApp(self::OPTIONS(), $name);
         $this->assertSame($app, FirebaseApp::getInstance($name));
@@ -133,7 +144,8 @@ class FirebaseAppTest extends TestCase
         $this->assertNotSame($app, $app2);
     }
 
-    public function testGetApps() {
+    public function testGetApps()
+    {
         $app1 = FirebaseApp::initializeApp(self::OPTIONS(), 'app1');
         $app2 = FirebaseApp::initializeApp(self::OPTIONS(), 'app2');
         $apps = FirebaseApp::getApps();
@@ -142,45 +154,52 @@ class FirebaseAppTest extends TestCase
         $this->assertContains($app2, $apps);
     }
 
-    public function testGetNullApp() {
+    public function testGetNullApp()
+    {
         FirebaseApp::initializeApp(self::OPTIONS(), 'app');
         $this->expectException(FirebaseException::class);
         FirebaseApp::getInstance(null);
     }
 
-    public function testToString() {
+    public function testToString()
+    {
         $app = FirebaseApp::initializeApp(self::OPTIONS(), 'app');
         $pattern = '/FirebaseApp\\{name=app}/';
         $this->assertRegExp($pattern, (string)$app);
     }
 
-    public function testMissingInit() {
+    public function testMissingInit()
+    {
         $this->expectException(FirebaseException::class);
         FirebaseApp::getInstance();
     }
 
-    private static function invokePublicInstanceMethodWithDefaultValues($instance = null, ?\ReflectionMethod $method = null) {
+    private static function invokePublicInstanceMethodWithDefaultValues($instance = null, ?\ReflectionMethod $method = null)
+    {
         $parameters = [];
         foreach ($method->getParameters() as $parameter) {
-            if($parameter->isDefaultValueAvailable()) {
+            if ($parameter->isDefaultValueAvailable()) {
                 $parameters[] = $parameter->getDefaultValue();
             }
         }
         $method->invokeArgs($instance, $parameters);
     }
 
-    public function testApiInitForNonDefaultApp() {
+    public function testApiInitForNonDefaultApp()
+    {
         $app = FirebaseApp::initializeApp(self::OPTIONS(), 'myApp');
         $this->assertFalse(ImplFirebaseTrampolines::isDefaultApp($app));
     }
 
-    public function testApiInitForDefaultApp() {
+    public function testApiInitForDefaultApp()
+    {
         // Explicit initialization of FirebaseApp instance.
         $app = FirebaseApp::initializeApp(self::OPTIONS());
         $this->assertTrue(ImplFirebaseTrampolines::isDefaultApp($app));
     }
 
-    public function testAppWithAuthVariableOverrides() {
+    public function testAppWithAuthVariableOverrides()
+    {
         $authVariableOverrides = ['uid' => 'uid1'];
         $options = (new FirebaseOptionsBuilder(self::getMockCredentialOptions()))
             ->setDatabaseAuthVariableOverride($authVariableOverrides)
@@ -191,7 +210,8 @@ class FirebaseAppTest extends TestCase
         $this->assertTrue(!empty($token));
     }
 
-    public function testEmptyFirebaseConfigString() {
+    public function testEmptyFirebaseConfigString()
+    {
         $this->setFirebaseConfigEnvironmentVariable('');
         $app = FirebaseApp::initializeApp();
         $this->assertNull($app->getOptions()->getProjectId());
@@ -200,7 +220,8 @@ class FirebaseAppTest extends TestCase
         $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
     }
 
-    public function testEmptyFirebaseConfigJSONObject() {
+    public function testEmptyFirebaseConfigJSONObject()
+    {
         $this->setFirebaseConfigEnvironmentVariable('{}');
         $app = FirebaseApp::initializeApp();
         $this->assertNull($app->getOptions()->getProjectId());
@@ -209,32 +230,37 @@ class FirebaseAppTest extends TestCase
         $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
     }
 
-    public function testInvalidFirebaseConfigFile() {
+    public function testInvalidFirebaseConfigFile()
+    {
         $this->setFirebaseConfigEnvironmentVariable('firebase_config_invalid.json');
         $this->expectException(\InvalidArgumentException::class);
         FirebaseApp::initializeApp();
     }
 
-    public function testInvalidFirebaseConfigString() {
+    public function testInvalidFirebaseConfigString()
+    {
         $this->setFirebaseConfigEnvironmentVariable('{...');
         $this->expectException(\InvalidArgumentException::class);
         FirebaseApp::initializeApp();
     }
 
-    public function testFirebaseConfigMissingFile() {
+    public function testFirebaseConfigMissingFile()
+    {
         $this->setFirebaseConfigEnvironmentVariable('no_such_this_file_in_the_world.json');
         $this->expectException(\InvalidArgumentException::class);
         FirebaseApp::initializeApp();
     }
 
-    public function testFirebaseConfigFileWithSomeKeysMissing() {
+    public function testFirebaseConfigFileWithSomeKeysMissing()
+    {
         $this->setFirebaseConfigEnvironmentVariable('firebase_config_partial.json');
         $app = FirebaseApp::initializeApp();
         $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
         $this->assertEquals('https://hipster-chat.firebaseio.mock', $app->getOptions()->getDatabaseUrl());
     }
 
-    public function testValidFirebaseConfigFile() {
+    public function testValidFirebaseConfigFile()
+    {
         $this->setFirebaseConfigEnvironmentVariable('firebase_config.json');
         $app = FirebaseApp::initializeApp();
         $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
@@ -243,7 +269,8 @@ class FirebaseAppTest extends TestCase
         $this->assertEquals('testuser', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
     }
 
-    public function testEnvironmentVariableIgnored() {
+    public function testEnvironmentVariableIgnored()
+    {
         $this->setFirebaseConfigEnvironmentVariable('firebase_config.json');
         $app = FirebaseApp::initializeApp(self::OPTIONS());
         $this->assertNull($app->getOptions()->getProjectId());
@@ -252,7 +279,8 @@ class FirebaseAppTest extends TestCase
         $this->assertEmpty($app->getOptions()->getDatabaseAuthVariableOverride());
     }
 
-    public function testValidFirebaseConfigString() {
+    public function testValidFirebaseConfigString()
+    {
         $this->setFirebaseConfigEnvironmentVariable("{"
             . "\"databaseAuthVariableOverride\": {"
             .   "\"uid\":"
@@ -269,13 +297,15 @@ class FirebaseAppTest extends TestCase
         $this->assertEquals('testuser', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
     }
 
-    public function testFirebaseConfigFileIgnoresInvalidKey() {
+    public function testFirebaseConfigFileIgnoresInvalidKey()
+    {
         $this->setFirebaseConfigEnvironmentVariable('firebase_config_invalid_key.json');
         $app = FirebaseApp::initializeApp();
         $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
     }
 
-    public function testFirebaseConfigStringIgnoresInvalidKey() {
+    public function testFirebaseConfigStringIgnoresInvalidKey()
+    {
         $this->setFirebaseConfigEnvironmentVariable("{"
             . "\"databaseUareL\": \"https://hipster-chat.firebaseio.mock\","
             . "\"projectId\": \"hipster-chat-mock\""
@@ -284,19 +314,22 @@ class FirebaseAppTest extends TestCase
         $this->assertEquals('hipster-chat-mock', $app->getOptions()->getProjectId());
     }
 
-    public function testFirebaseExceptionNullDetail() {
+    public function testFirebaseExceptionNullDetail()
+    {
         $this->expectException(InvalidArgumentException::class);
         new FirebaseException(null);
     }
 
-    public function testFirebaseExceptionEmptyDetail() {
+    public function testFirebaseExceptionEmptyDetail()
+    {
         $this->expectException(InvalidArgumentException::class);
         new FirebaseException('');
     }
 
-    private static function setFirebaseConfigEnvironmentVariable(string $configJson) {
+    private static function setFirebaseConfigEnvironmentVariable(string $configJson)
+    {
         $configValue = null;
-        if(empty($configJson) || $configJson[0] === '{') {
+        if (empty($configJson) || $configJson[0] === '{') {
             $configValue = $configJson;
         } else {
             $configValueParts = pathinfo(__DIR__ . '/fixtures/' . $configJson);
@@ -306,7 +339,8 @@ class FirebaseAppTest extends TestCase
         TestUtils::setEnvironmentVariables($envs);
     }
 
-    private static function getMockCredentialOptions() {
+    private static function getMockCredentialOptions()
+    {
         return (new FirebaseOptionsBuilder())
             ->setCredentials(ApplicationDefaultCredentials::getCredentials([]))
             ->build();

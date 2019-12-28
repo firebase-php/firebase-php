@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Util\Validator\Validator;
 
 class RevocationCheckDecorator implements FirebaseTokenVerifier
@@ -37,8 +36,7 @@ class RevocationCheckDecorator implements FirebaseTokenVerifier
         FirebaseUserManager $userManager,
         string $errorCode,
         string $shortName
-    )
-    {
+    ) {
         $this->tokenVerifier = Validator::isNonNullObject($tokenVerifier);
         $this->userManager = Validator::isNonNullObject($userManager);
         $this->errorCode = Validator::isNonEmptyString($errorCode);
@@ -48,7 +46,7 @@ class RevocationCheckDecorator implements FirebaseTokenVerifier
     public function verifyToken(string $token)
     {
         $firebaseToken = $this->tokenVerifier->verifyToken($token);
-        if($this->isRevoked($firebaseToken)) {
+        if ($this->isRevoked($firebaseToken)) {
             throw new FirebaseAuthException(
                 $this->errorCode,
                 sprintf('Firebase %s revoked', $this->shortName)
@@ -58,20 +56,21 @@ class RevocationCheckDecorator implements FirebaseTokenVerifier
         return $firebaseToken;
     }
 
-    private function isRevoked(FirebaseToken $firebaseToken) {
+    private function isRevoked(FirebaseToken $firebaseToken)
+    {
         $user = $this->userManager->getUserById($firebaseToken->getUid());
         $issuedAtInSeconds = intval($firebaseToken->getClaims()['iat']);
         return $user->getTokensValidAfterTimestamp() > $issuedAtInSeconds * 1000;
     }
 
-    static function decorateIdTokenVerifier(
+    public static function decorateIdTokenVerifier(
         FirebaseTokenVerifier $tokenVerifier,
         FirebaseUserManager $userManager
     ) {
         return new RevocationCheckDecorator($tokenVerifier, $userManager, self::ID_TOKEN_REVOKED_ERROR, 'id token');
     }
 
-    static function decorateSessionCookieVerifier(
+    public static function decorateSessionCookieVerifier(
         FirebaseTokenVerifier $tokenVerifier,
         FirebaseUserManager $userManager
     ) {

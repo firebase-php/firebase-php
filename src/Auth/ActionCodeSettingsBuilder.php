@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 final class ActionCodeSettingsBuilder
 {
     /**
@@ -167,7 +166,8 @@ final class ActionCodeSettingsBuilder
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         return new ActionCodeSettings($this);
     }
 }

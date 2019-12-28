@@ -43,7 +43,8 @@ class FirebaseAuthIT extends TestCase
         self::$auth = FirebaseAuth::getInstance($masterApp);
     }
 
-    public function testGetNonExistingUser() {
+    public function testGetNonExistingUser()
+    {
         try {
             self::$auth->getUser('non.existing');
             self::fail('No error thrown for existing email');
@@ -53,7 +54,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testGetNonExistingUserByEmail() {
+    public function testGetNonExistingUserByEmail()
+    {
         try {
             self::$auth->getUserByEmail('non.existing@definitely.non.existing');
             self::fail('No error thrown for non existing email');
@@ -62,7 +64,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testUpdateNonExistingUser() {
+    public function testUpdateNonExistingUser()
+    {
         try {
             self::$auth->updateUser(
                 new UpdateRequest('non.existing')
@@ -73,7 +76,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testDeleteNonExistingUser() {
+    public function testDeleteNonExistingUser()
+    {
         try {
             self::$auth->deleteUser('non.existing');
             self::fail('No error thrown for non existing uid');
@@ -82,7 +86,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testCreateUserWithParams() {
+    public function testCreateUserWithParams()
+    {
         $randomUser = RandomUser::create();
         $phone = $this->randomPhoneNumber();
         $user = (new CreateRequest())
@@ -107,7 +112,7 @@ class FirebaseAuthIT extends TestCase
             self::assertEquals(2, count($userRecord->getProviderData()));
             $providers = [];
             /** @var UserInfo $provider */
-            foreach($userRecord->getProviderData() as $provider) {
+            foreach ($userRecord->getProviderData() as $provider) {
                 $providers[] = $provider->getProviderId();
             }
             self::assertTrue(in_array('password', $providers));
@@ -118,7 +123,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testUserLifecycle() {
+    public function testUserLifecycle()
+    {
         // Create user
         $userRecord = self::$auth->createUser(new CreateRequest());
         $uid = $userRecord->getUid();
@@ -190,7 +196,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    public function testListUsers() {
+    public function testListUsers()
+    {
         $uids = [];
         $collected = 0;
         try {
@@ -200,8 +207,8 @@ class FirebaseAuthIT extends TestCase
 
             $response = self::$auth->listUsers(null);
             $users = $response->getUsers();
-            foreach($users as $user) {
-                if(in_array($user->getUid(), $uids)) {
+            foreach ($users as $user) {
+                if (in_array($user->getUid(), $uids)) {
                     $collected++;
                     self::assertNotNull($user->getPasswordHash(), 'Missing passwordHash field. A common cause would be '
                         . '"forgetting to add the "Firebase Authentication Admin" permission. See "'
@@ -212,13 +219,14 @@ class FirebaseAuthIT extends TestCase
 
             self::assertEquals(count($uids), $collected);
         } finally {
-            foreach($uids as $uid) {
+            foreach ($uids as $uid) {
                 self::$auth->deleteUser($uid);
             }
         }
     }
 
-    public function testCustomClaims() {
+    public function testCustomClaims()
+    {
         $userRecord = self::$auth->createUser(new CreateRequest());
         $uid = $userRecord->getUid();
 
@@ -233,7 +241,7 @@ class FirebaseAuthIT extends TestCase
             // Should have 2 claims
             $updatedUser = self::$auth->getUser($uid);
             self::assertEquals(2, count($updatedUser->getCustomClaims()));
-            foreach($expected as $key => $entry) {
+            foreach ($expected as $key => $entry) {
                 self::assertEquals($entry, $updatedUser->getCustomClaims()[$key]);
             }
 
@@ -242,7 +250,7 @@ class FirebaseAuthIT extends TestCase
             $decoded = self::$auth->verifyIdToken($idToken);
             $result = $decoded->getClaims();
 
-            foreach($expected as $key => $entry) {
+            foreach ($expected as $key => $entry) {
                 self::assertEquals($entry, $result[$key]);
             }
 
@@ -254,12 +262,14 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    private function randomPhoneNumber() {
+    private function randomPhoneNumber()
+    {
         $series = Base::regexify('[0-9]{10}');
         return '+1' . $series;
     }
 
-    private function checkRecreate(?string $uid) {
+    private function checkRecreate(?string $uid)
+    {
         try {
             self::$auth->createUser(
                 (new CreateRequest())->setUid($uid)
@@ -271,7 +281,8 @@ class FirebaseAuthIT extends TestCase
         }
     }
 
-    private function signInWithCustomToken(string $customToken) {
+    private function signInWithCustomToken(string $customToken)
+    {
         $url = sprintf('%s?key=%s', self::VERIFY_CUSTOM_TOKEN_URL, IntegrationTestUtils::getApiKey());
         $content = [
             'token' => $customToken,

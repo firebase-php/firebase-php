@@ -23,7 +23,8 @@ class FirebaseTokenFactoryTest extends TestCase
 
     private const ISSUER = 'test-484@mg-test-1210.iam.gserviceaccount.com';
 
-    public function testCheckSignatureForToken() {
+    public function testCheckSignatureForToken()
+    {
         $res = openssl_pkey_new();
         $privateKey = openssl_get_privatekey($res);
         $tokenFactory = new FirebaseTokenFactory(self::TestCryptoSigner($privateKey));
@@ -38,7 +39,8 @@ class FirebaseTokenFactoryTest extends TestCase
         self::assertTrue(TestUtils::verifySignature($signedJwt, [$pubKey['key']]));
     }
 
-    public function testFailsWhenUidIsNull() {
+    public function testFailsWhenUidIsNull()
+    {
         $res = openssl_pkey_new();
         $privateKey = openssl_get_privatekey($res);
         $tokenFactory = new FirebaseTokenFactory(self::TestCryptoSigner($privateKey));
@@ -46,7 +48,8 @@ class FirebaseTokenFactoryTest extends TestCase
         $tokenFactory->createSignedCustomAuthTokenForUser(null);
     }
 
-    public function testFailsWhenExtraClaimsContainsReservedKey() {
+    public function testFailsWhenExtraClaimsContainsReservedKey()
+    {
         $res = openssl_pkey_new();
         $privateKey = openssl_get_privatekey($res);
         $tokenFactory = new FirebaseTokenFactory(self::TestCryptoSigner($privateKey));
@@ -59,7 +62,8 @@ class FirebaseTokenFactoryTest extends TestCase
      * @param resource $privateKey
      * @return CryptoSigner
      */
-    private static function TestCryptoSigner($privateKey) {
+    private static function TestCryptoSigner($privateKey)
+    {
         return new class(self::ISSUER, $privateKey) implements CryptoSigner {
             use ServiceAccountSignerTrait;
             /**

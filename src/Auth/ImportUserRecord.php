@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 final class ImportUserRecord
 {
     /**
@@ -24,7 +23,7 @@ final class ImportUserRecord
         $copy = array_replace([], $this->properties);
 
         // serialize custom claims
-        if(isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
+        if (isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
             $customClaims = $copy[UserRecord::CUSTOM_ATTRIBUTES];
             $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
         }
@@ -32,11 +31,13 @@ final class ImportUserRecord
         return $copy;
     }
 
-    public function hasPassword() {
+    public function hasPassword()
+    {
         return isset($this->properties['passwordHash']);
     }
 
-    public static function builder() {
+    public static function builder()
+    {
         return new ImportUserRecordBuilder();
     }
 }

@@ -17,7 +17,7 @@ class UserMetadata
     public function __construct(int $creationTimestamp, int $lastSignInTimestamp = null)
     {
         $this->creationTimestamp = $creationTimestamp;
-        if(!is_null($lastSignInTimestamp)) {
+        if (!is_null($lastSignInTimestamp)) {
             $this->lastSignInTimestamp = $lastSignInTimestamp;
         }
     }

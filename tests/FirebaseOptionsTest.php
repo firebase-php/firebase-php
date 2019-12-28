@@ -18,7 +18,8 @@ class FirebaseOptionsTest extends TestCase
     private const FIREBASE_STORAGE_BUCKET = 'mock-storage-bucket';
     private const FIREBASE_PROJECT_ID = 'explicit-project-id';
 
-    private static final function ALL_VALUES_OPTIONS() {
+    final private static function ALL_VALUES_OPTIONS()
+    {
         return (new FirebaseOptionsBuilder())
             ->setDatabaseUrl(self::FIREBASE_DB_URL)
             ->setStorageBucket(self::FIREBASE_STORAGE_BUCKET)
@@ -27,7 +28,8 @@ class FirebaseOptionsTest extends TestCase
             ->build();
     }
 
-    public function testCreateOptionsWithAllValuesSet() {
+    public function testCreateOptionsWithAllValuesSet()
+    {
         $options = (new FirebaseOptionsBuilder())
             ->setDatabaseUrl(self::FIREBASE_DB_URL)
             ->setStorageBucket(self::FIREBASE_STORAGE_BUCKET)
@@ -48,7 +50,8 @@ class FirebaseOptionsTest extends TestCase
         $this->assertEquals(TestUtils::getCertCredential(ServiceAccount::EDITOR())->getClientName(), $creds->getClientName());
     }
 
-    public function testCreateOptionsWithOnlyMandatoryValuesSet() {
+    public function testCreateOptionsWithOnlyMandatoryValuesSet()
+    {
         $options = (new FirebaseOptionsBuilder())
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
             ->build();
@@ -63,19 +66,22 @@ class FirebaseOptionsTest extends TestCase
         $this->assertEquals(TestUtils::getCertCredential(ServiceAccount::EDITOR())->getClientName(), $creds->getClientName());
     }
 
-    public function testCreateOptionsWithCredentialMissing() {
+    public function testCreateOptionsWithCredentialMissing()
+    {
         $this->expectException(InvalidArgumentException::class);
         (new FirebaseOptionsBuilder())->build()->getCredentials();
     }
 
-    public function testCreateOptionsWithNullCredentials() {
+    public function testCreateOptionsWithNullCredentials()
+    {
         $this->expectException(InvalidArgumentException::class);
         (new FirebaseOptionsBuilder())
             ->setCredentials(null)
             ->build();
     }
 
-    public function testCreateOptionsWithStorageBucketUrl() {
+    public function testCreateOptionsWithStorageBucketUrl()
+    {
         $this->expectException(InvalidArgumentException::class);
         (new FirebaseOptionsBuilder())
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
@@ -83,7 +89,8 @@ class FirebaseOptionsTest extends TestCase
             ->build();
     }
 
-    public function testCheckToBuilderCreatesNewEquivalentInstance() {
+    public function testCheckToBuilderCreatesNewEquivalentInstance()
+    {
         $options = (new FirebaseOptionsBuilder(self::ALL_VALUES_OPTIONS()))->build();
         $this->assertNotSame(self::ALL_VALUES_OPTIONS(), $options);
         $this->assertEquals(self::ALL_VALUES_OPTIONS()->getCredentials(), $options->getCredentials());
@@ -93,7 +100,8 @@ class FirebaseOptionsTest extends TestCase
         $this->assertEquals(self::ALL_VALUES_OPTIONS()->getReadTimeout(), $options->getReadTimeout());
     }
 
-    public function testCreateOptionsWithInvalidConnectTimeout() {
+    public function testCreateOptionsWithInvalidConnectTimeout()
+    {
         $this->expectException(InvalidArgumentException::class);
         (new FirebaseOptionsBuilder())
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
@@ -101,7 +109,8 @@ class FirebaseOptionsTest extends TestCase
             ->build();
     }
 
-    public function testCreateOptionsWithInvalidReadTimeout() {
+    public function testCreateOptionsWithInvalidReadTimeout()
+    {
         $this->expectException(InvalidArgumentException::class);
         (new FirebaseOptionsBuilder())
             ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
@@ -109,7 +118,8 @@ class FirebaseOptionsTest extends TestCase
             ->build();
     }
 
-    public function testNotEquals() {
+    public function testNotEquals()
+    {
         $creds = TestUtils::getCertCredential(ServiceAccount::EDITOR());
         $options1 = (new FirebaseOptionsBuilder())
             ->setCredentials($creds)

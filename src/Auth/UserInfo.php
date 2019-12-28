@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 interface UserInfo
 {
     /**

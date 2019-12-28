@@ -2,7 +2,8 @@
 
 namespace Firebase;
 
-interface FirebaseServiceInterface {
+interface FirebaseServiceInterface
+{
     public function getApp(): FirebaseApp;
 
     public function getInternal(): FirebaseServiceInternalsInterface;

@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\GoogleAuthLibrary;
 
-
 use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 use Google\Auth\Credentials\UserRefreshCredentials;
 

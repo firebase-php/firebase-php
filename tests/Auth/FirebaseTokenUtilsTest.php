@@ -16,11 +16,13 @@ class FirebaseTokenUtilsTest extends TestCase
 {
     private const TEST_PROJECT_ID = 'test-project-id';
 
-    private final static function CLOCK() {
+    final private static function CLOCK()
+    {
         return Carbon::createFromTimestamp(2002000);
     }
 
-    private final static function MOCK_CREDENTIALS() {
+    final private static function MOCK_CREDENTIALS()
+    {
         return CredentialsLoader::makeInsecureCredentials();
     }
 
@@ -29,7 +31,8 @@ class FirebaseTokenUtilsTest extends TestCase
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
     }
 
-    public function testCreateIdTokenVerifier() {
+    public function testCreateIdTokenVerifier()
+    {
         $app = FirebaseApp::initializeApp(
             FirebaseOptions::builder()
             ->setCredentials(self::MOCK_CREDENTIALS())
@@ -55,7 +58,8 @@ class FirebaseTokenUtilsTest extends TestCase
         );
     }
 
-    public function testCreateIdTokenVerifierWithoutProjectId() {
+    public function testCreateIdTokenVerifierWithoutProjectId()
+    {
         $app = FirebaseApp::initializeApp(
             FirebaseOptions::builder()
             ->setCredentials(self::MOCK_CREDENTIALS())
@@ -65,7 +69,8 @@ class FirebaseTokenUtilsTest extends TestCase
         FirebaseTokenUtils::createIdTokenVerifier($app);
     }
 
-    public function testSessionCookieVerifier() {
+    public function testSessionCookieVerifier()
+    {
         $app = FirebaseApp::initializeApp(
             FirebaseOptions::builder()
                 ->setCredentials(self::MOCK_CREDENTIALS())
@@ -91,7 +96,8 @@ class FirebaseTokenUtilsTest extends TestCase
         );
     }
 
-    public function testCreateSessionCookieVerifierWithoutProjectId() {
+    public function testCreateSessionCookieVerifierWithoutProjectId()
+    {
         $app = FirebaseApp::initializeApp(
             FirebaseOptions::builder()
                 ->setCredentials(self::MOCK_CREDENTIALS())
@@ -101,15 +107,16 @@ class FirebaseTokenUtilsTest extends TestCase
         FirebaseTokenUtils::createSessionCookieVerifier($app);
     }
 
-    private function verifyPublicKeysManager(?GooglePublicKeysManager $publicKeysManager, string $certUrl) {
+    private function verifyPublicKeysManager(?GooglePublicKeysManager $publicKeysManager, string $certUrl)
+    {
         self::assertNotNull($publicKeysManager);
         self::assertEquals($certUrl, $publicKeysManager->getPublicCertsEncodedUrl());
     }
 
-    private function verifyJwtVerifier(?IdTokenVerifier $jwtVerifier, string $issuer) {
+    private function verifyJwtVerifier(?IdTokenVerifier $jwtVerifier, string $issuer)
+    {
         self::assertNotNull($jwtVerifier);
         self::assertEquals($issuer, $jwtVerifier->getIssuer());
         self::assertEquals(self::TEST_PROJECT_ID, $jwtVerifier->getAudience());
     }
-
 }

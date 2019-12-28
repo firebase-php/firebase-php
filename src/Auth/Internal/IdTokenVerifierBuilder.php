@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 use Google\Auth\OAuth2;
 use GuzzleHttp\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;

@@ -3,7 +3,6 @@
 
 namespace Firebase\Tests\Testing;
 
-
 use InvalidArgumentException;
 use Lcobucci\JWT\Signature;
 use Lcobucci\JWT\Signer;

@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 use Firebase\Auth\Internal\UploadAccountInfoResponse\ErrorInfo;
 
 class UploadAccountResponse implements ResponseBuilder
@@ -24,13 +23,13 @@ class UploadAccountResponse implements ResponseBuilder
 
     public static function build(array $content = null)
     {
-        if(empty($content)) {
+        if (empty($content)) {
             return null;
         }
         $response = new static();
         $response->errors = [];
-        if(is_array($content) && isset($content['error'])) {
-            foreach($content['error'] as $error) {
+        if (is_array($content) && isset($content['error'])) {
+            foreach ($content['error'] as $error) {
                 $response->errors = new ErrorInfo($error['index'], $error['message']);
             }
         }

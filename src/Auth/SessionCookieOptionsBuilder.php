@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 class SessionCookieOptionsBuilder
 {
     /**
@@ -29,7 +28,8 @@ class SessionCookieOptionsBuilder
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         return new SessionCookieOptions($this);
     }
 }

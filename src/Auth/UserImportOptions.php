@@ -19,12 +19,14 @@ final class UserImportOptions
         $this->hash = $builder->getHash();
     }
 
-    public static function withHash(?Signer $hash = null) {
+    public static function withHash(?Signer $hash = null)
+    {
         Validator::isNonNullObject($hash);
         return self::builder()->setHash($hash)->build();
     }
 
-    public static function builder() {
+    public static function builder()
+    {
         return new UserImportOptionsBuilder();
     }
 
@@ -36,7 +38,8 @@ final class UserImportOptions
         return $this->hash;
     }
 
-    public function getProperties() {
+    public function getProperties()
+    {
         return [
             'hashAlgorithm' => $this->hash->getAlgorithmId(),
             'signerKey' => base64_encode($this->hash->getAlgorithmId())

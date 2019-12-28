@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Lcobucci\JWT\Signer;
 
 class UserImportOptionsBuilder
@@ -31,7 +30,8 @@ class UserImportOptionsBuilder
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         return new UserImportOptions($this);
     }
 }

@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\Internal;
 
-
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -14,7 +13,7 @@ class GooglePublicKeysManager
 {
     private const REFRESH_SKEW_MILLIS = 300000;
 
-    private const MAX_AGE_PATTERN = '/\s*max-age\s*=\s*(?P<cacheControl>\d+)\s*/';
+    private const MAX_AGE_PATTERN = '/\\s*max-age\\s*=\\s*(?P<cacheControl>\\d+)\\s*/';
 
     /**
      * @var string[]
@@ -38,7 +37,7 @@ class GooglePublicKeysManager
 
     public function __construct(GooglePublicKeysManagerBuilder $builder = null)
     {
-        if(!$builder) {
+        if (!$builder) {
             return;
         }
         $this->publicCertsEncodedUrl = $builder->getPublicCertsEncodeUrl();
@@ -47,7 +46,7 @@ class GooglePublicKeysManager
 
     public function getPublicKeys(): array
     {
-        if(empty($this->publicKeys) || Carbon::now()->valueOf() + self::REFRESH_SKEW_MILLIS > $this->expirationTimeMilliseconds) {
+        if (empty($this->publicKeys) || Carbon::now()->valueOf() + self::REFRESH_SKEW_MILLIS > $this->expirationTimeMilliseconds) {
             $this->refresh();
         }
 
@@ -58,14 +57,15 @@ class GooglePublicKeysManager
      * @return GooglePublicKeysManager|null
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function refresh(): ?GooglePublicKeysManager {
+    public function refresh(): ?GooglePublicKeysManager
+    {
         $this->publicKeys = [];
         $certRequest = new Request('GET', $this->publicCertsEncodedUrl);
         $certResponse = $this->httpClient->send($certRequest);
         $this->expirationTimeMilliseconds = Carbon::now()->valueOf() + $this->getCacheTimeInSec($certResponse) * 1000;
         $certs = json_decode($certResponse->getBody());
 
-        foreach($certs as $kid => $cert) {
+        foreach ($certs as $kid => $cert) {
             $this->publicKeys[$kid] = $cert;
         }
 
@@ -76,21 +76,22 @@ class GooglePublicKeysManager
      * @param ResponseInterface $response
      * @return mixed
      */
-    public function getCacheTimeInSec(ResponseInterface $response) {
+    public function getCacheTimeInSec(ResponseInterface $response)
+    {
         $cacheTimeInSec = 0;
-        if($response->hasHeader('cache-control')) {
+        if ($response->hasHeader('cache-control')) {
             $cacheControl = $response->getHeader('cache-control')[0];
             $parts = explode(',', $cacheControl);
             foreach ($parts as $part) {
                 preg_match(self::MAX_AGE_PATTERN, $part, $matches);
-                if(isset($matches['cacheControl'])) {
+                if (isset($matches['cacheControl'])) {
                     $cacheTimeInSec = intval($matches['cacheControl']);
                     break;
                 }
             }
         }
 
-        if($response->hasHeader('age')) {
+        if ($response->hasHeader('age')) {
             $cacheTimeInSec -= intval($response->getHeader('age')[0]);
         }
 

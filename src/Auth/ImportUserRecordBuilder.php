@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Util\Validator\Validator;
 
 class ImportUserRecordBuilder
@@ -168,83 +167,88 @@ class ImportUserRecordBuilder
         return $this;
     }
 
-    public function addUserProvider(?UserProvider $provider): ImportUserRecordBuilder {
+    public function addUserProvider(?UserProvider $provider): ImportUserRecordBuilder
+    {
         Validator::isNonNullObject($provider);
         $this->userProviders[] = $provider;
         return $this;
     }
 
-    public function addAllUserProviders(?array $providers = []): ImportUserRecordBuilder {
+    public function addAllUserProviders(?array $providers = []): ImportUserRecordBuilder
+    {
         $this->userProviders = array_merge($this->userProviders, $providers);
         return $this;
     }
 
-    public function putCustomClaim(?string $key, $value): ImportUserRecordBuilder {
+    public function putCustomClaim(?string $key, $value): ImportUserRecordBuilder
+    {
         $this->customClaims[$key] = $value;
         return $this;
     }
 
-    public function putAllCustomClaims(?array $customClaims = []): ImportUserRecordBuilder {
+    public function putAllCustomClaims(?array $customClaims = []): ImportUserRecordBuilder
+    {
         $this->customClaims = array_merge($this->customClaims, $customClaims);
         return $this;
     }
 
-    public function build() {
+    public function build()
+    {
         $properties = [];
         Validator::isUid($this->uid);
         $properties['localId'] = $this->uid;
 
-        if(Validator::isNonEmptyString($this->email, '', false)) {
+        if (Validator::isNonEmptyString($this->email, '', false)) {
             Validator::isEmail($this->email);
             $properties['email'] = $this->email;
         }
 
-        if(Validator::isNonEmptyString($this->photoUrl, '', false)) {
+        if (Validator::isNonEmptyString($this->photoUrl, '', false)) {
             Validator::isURL($this->photoUrl);
             $properties['photoUrl'] = $this->photoUrl;
         }
 
-        if(Validator::isNonEmptyString($this->phoneNumber, '', false)) {
+        if (Validator::isNonEmptyString($this->phoneNumber, '', false)) {
             Validator::isPhoneNumber($this->phoneNumber);
             $properties['phoneNumber'] = $this->phoneNumber;
         }
 
-        if(Validator::isNonEmptyString($this->displayName, '', false)) {
+        if (Validator::isNonEmptyString($this->displayName, '', false)) {
             $properties['displayName'] = $this->displayName;
         }
 
-        if(!is_null($this->userMetadata)) {
-            if($this->userMetadata->getCreationTimestamp() > 0) {
+        if (!is_null($this->userMetadata)) {
+            if ($this->userMetadata->getCreationTimestamp() > 0) {
                 $properties['createdAt'] = $this->userMetadata->getCreationTimestamp();
             }
-            if($this->userMetadata->getLastSignInTimestamp() > 0) {
+            if ($this->userMetadata->getLastSignInTimestamp() > 0) {
                 $properties['lastLoginAt'] = $this->userMetadata->getLastSignInTimestamp();
             }
         }
 
-        if(!is_null($this->passwordHash)) {
+        if (!is_null($this->passwordHash)) {
             $properties['passwordHash'] = base64_encode($this->passwordHash);
         }
 
-        if(!is_null($this->passwordSalt)) {
+        if (!is_null($this->passwordSalt)) {
             $properties['salt'] = base64_encode($this->passwordSalt);
         }
 
-        if(count($this->userProviders) > 0) {
+        if (count($this->userProviders) > 0) {
             $properties['providerUserInfo'] = array_replace([], $this->userProviders);
         }
 
-        if(count($this->customClaims) > 0) {
+        if (count($this->customClaims) > 0) {
             $mergedClaims = array_replace([], $this->customClaims);
             UserRecord::checkCustomClaims($mergedClaims);
             $properties[UserRecord::CUSTOM_ATTRIBUTES] = $mergedClaims;
         }
 
-        if(!is_null($this->emailVerified)) {
+        if (!is_null($this->emailVerified)) {
             $properties['emailVerified'] = $this->emailVerified;
         }
 
-        if(!is_null($this->disabled)) {
+        if (!is_null($this->disabled)) {
             $properties['disabled'] = $this->disabled;
         }
 

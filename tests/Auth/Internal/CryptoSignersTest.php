@@ -24,7 +24,8 @@ class CryptoSignersTest extends TestCase
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
     }
 
-    public function testServiceAccountCryptoSigner() {
+    public function testServiceAccountCryptoSigner()
+    {
         $creds = CredentialsLoader::makeCredentials([], ServiceAccount::EDITOR()->asArray());
         $expected = $creds->signBlob('foo');
         $signer = new ServiceAccountSigner($creds);
@@ -32,12 +33,14 @@ class CryptoSignersTest extends TestCase
         self::assertEquals($expected, $data);
     }
 
-    public function testInvalidServiceAccountCryptoSigner() {
+    public function testInvalidServiceAccountCryptoSigner()
+    {
         $this->expectException(\TypeError::class);
         new ServiceAccountSigner(null);
     }
 
-    public function testIAMCryptoSigner() {
+    public function testIAMCryptoSigner()
+    {
         $signature = base64_encode('signed-bytes');
         $response = json_encode(['signature' => $signature]);
 
@@ -55,7 +58,8 @@ class CryptoSignersTest extends TestCase
         self::assertEquals($url, $signer->getSignEndpoint());
     }
 
-    public function testInvalidIAMCryptoSigner() {
+    public function testInvalidIAMCryptoSigner()
+    {
         try {
             new IAMSigner(null);
             self::fail('No error thrown for null service account.');
@@ -64,7 +68,8 @@ class CryptoSignersTest extends TestCase
         }
     }
 
-    public function testMetadataService() {
+    public function testMetadataService()
+    {
         $signature = base64_encode('signed-bytes');
         $response = ['signature' => $signature];
 
@@ -90,8 +95,8 @@ class CryptoSignersTest extends TestCase
         self::assertEquals($url, $signer->getSignEndpoint());
     }
 
-    public function testExplicitServiceAccountEmail() {
-
+    public function testExplicitServiceAccountEmail()
+    {
         $signature = base64_encode('signed-bytes');
         $response = ['signature' => $signature];
 

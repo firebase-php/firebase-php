@@ -12,14 +12,16 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class ImportUserRecordTest extends TestCase
 {
-    public function testUidOnlyRecord() {
+    public function testUidOnlyRecord()
+    {
         $record = ImportUserRecord::builder()
             ->setUid('testuid')
             ->build();
         $this->assertEquals(['localId' => 'testuid'], $record->getProperties());
     }
 
-    public function testAllProperties() {
+    public function testAllProperties()
+    {
         $date = Carbon::now();
 
         $provider1 = UserProvider::builder()
@@ -72,14 +74,16 @@ class ImportUserRecordTest extends TestCase
         $this->assertEquals($expected, $properties);
     }
 
-    public function testInvalidUid() {
+    public function testInvalidUid()
+    {
         $this->expectException(InvalidArgumentException::class);
         ImportUserRecord::builder()
             ->setUid(str_repeat('a', 129))
             ->build();
     }
 
-    public function testInvalidEmail() {
+    public function testInvalidEmail()
+    {
         $this->expectException(InvalidArgumentException::class);
         ImportUserRecord::builder()
             ->setUid('test')
@@ -87,7 +91,8 @@ class ImportUserRecordTest extends TestCase
             ->build();
     }
 
-    public function testInvalidPhotoUrl() {
+    public function testInvalidPhotoUrl()
+    {
         $this->expectException(InvalidArgumentException::class);
         ImportUserRecord::builder()
             ->setUid('test')
@@ -95,7 +100,8 @@ class ImportUserRecordTest extends TestCase
             ->build();
     }
 
-    public function testInvalidPhoneNumber() {
+    public function testInvalidPhoneNumber()
+    {
         $this->expectException(InvalidArgumentException::class);
         ImportUserRecord::builder()
             ->setUid('test')
@@ -103,7 +109,8 @@ class ImportUserRecordTest extends TestCase
             ->build();
     }
 
-    public function testNullUserProvider() {
+    public function testNullUserProvider()
+    {
         try {
             ImportUserRecord::builder()
                 ->setUid('test')
@@ -125,7 +132,8 @@ class ImportUserRecordTest extends TestCase
         }
     }
 
-    public function testNullOrEmptyCustomClaims() {
+    public function testNullOrEmptyCustomClaims()
+    {
         try {
             ImportUserRecord::builder()
                 ->setUid('test')
@@ -155,9 +163,10 @@ class ImportUserRecordTest extends TestCase
         }
     }
 
-    public function testReservedClaims() {
+    public function testReservedClaims()
+    {
         $this->expectNotToPerformAssertions();
-        foreach(FirebaseUserManager::RESERVED_CLAIMS as $key) {
+        foreach (FirebaseUserManager::RESERVED_CLAIMS as $key) {
             try {
                 ImportUserRecord::builder()
                     ->setUid('test')
@@ -170,7 +179,8 @@ class ImportUserRecordTest extends TestCase
         }
     }
 
-    public function testLargeCustomClaims() {
+    public function testLargeCustomClaims()
+    {
         $this->expectNotToPerformAssertions();
         $record = ImportUserRecord::builder()
             ->setUid('test')

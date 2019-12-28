@@ -25,7 +25,7 @@ class IAMSigner implements CryptoSigner
     {
         Validator::isNonEmptyString($serviceAccount);
         $this->serviceAccount = $serviceAccount;
-        if(is_null($httpClient)) {
+        if (is_null($httpClient)) {
             $this->httpClient = new Client();
         } else {
             $this->httpClient = $httpClient;

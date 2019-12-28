@@ -9,12 +9,14 @@ use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
 class UserImportOptionsTest extends TestCase
 {
-    public function testEmptyOptions() {
+    public function testEmptyOptions()
+    {
         $this->expectException(InvalidArgumentException::class);
         UserImportOptions::builder()->build();
     }
 
-    public function testHash() {
+    public function testHash()
+    {
         $hash = new Sha512();
         $options = UserImportOptions::builder()
             ->setHash($hash)
