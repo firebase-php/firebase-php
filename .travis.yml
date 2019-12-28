@@ -10,7 +10,7 @@ before_script:
   - composer install --prefer-dist --no-interaction --no-suggest
 
 script:
-  - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --config-file=.php_cs .
+  - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation
   - vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
 
 
