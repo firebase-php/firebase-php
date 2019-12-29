@@ -27,7 +27,7 @@ jobs:
     - stage: test
       name: "Unit test"
       script:
-        - vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage
+        - vendor/bin/phpunit --testsuite=unit
     - stage: report
       php: "7.2"
       git:
