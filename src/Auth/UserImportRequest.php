@@ -41,7 +41,6 @@ class UserImportRequest
         } else {
             $this->payload = array_merge(['users' => $this->users]);
         }
-
     }
 
     public function getUsersCount()
