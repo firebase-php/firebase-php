@@ -1,52 +1,61 @@
 language: php
 dist: trusty
-
 php:
-  - 7.2
-  - 7.3
-  - 7.4
-
+- 7.2
+- 7.3
+- 7.4
 stages:
-  - lint
-  - test
-  - report
-
+- lint
+- test
+- report
 before_install:
-  - pecl install grpc
-
+- openssl aes-256-cbc -K $encrypted_589568f37856_key -iv $encrypted_589568f37856_iv -in integration_cert.json.enc -out tests/fixtures/integration_cert.json -d
+- openssl aes-256-cbc -K $encrypted_589568f37856_key -iv $encrypted_589568f37856_iv -in integration_apikey.txt.enc -out tests/fixtures/integration_apikey.txt -d
+- pecl install grpc
 install:
-  - composer update --no-progress --no-interaction --no-suggest
+- composer update --no-progress --no-interaction --no-suggest
 
 jobs:
   include:
-    - stage: lint
-      name: "Code style check"
-      php: "7.2"
-      script:
-        - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation
-    - stage: test
-      name: "Unit test"
-      script:
-        - vendor/bin/phpunit --testsuite=unit
-    - stage: report
-      php: "7.2"
-      git:
-        depth: false
-      script:
-        - vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml --log-junit=test-results.xml
-        - bash <(curl -s https://codecov.io/bash)
-        - sonar-scanner
-      branches:
-        only:
-          - master
-          - develop
-      addons:
-        sonarcloud:
-          organization: "tiptopcoder"
-          token:
-            secure: "adAtt04c5Bl67LIR7MeEMOdtJB3lGE5DHeIULJclLqtMwxeVoj/3wq+RySG2mtHGShX2ajiQzE08mKpyGrC/wlPHVog23OIEco7H6g7MdjNtRoZPXs9SSHBlJAfXjGCZBXFD7QGhNALAR4BQKs4gCTSznUcBP1nl47QWk5KzheV/UdeV9tNe/NHOEXexEA0QYEp28+8K1MpckouH0qLSL33fVDqMnzv8h9EP2oSr6gBpVsqaYMjS05D2S7cz7uQJD0v8gvDXFU9VCK3yzQ6aJWcuawXX9Xcq0/uuV+duDwFZ1mtpb7JP7s2TRO4PR0qnN93qafuePx3LE9MZUEffGBcV8mKtHGQk8RB28QTY5/lhw3RLshZ6WBU0M7JMZCiqvGPc4xjzL/TroNUSpwUUFE0xs8tQDrm0mg7WfuZx/eeegvJlk3cRd5irbpRqCfRRvf6PFR5dvZp3reldIhIKfJquYZv+l+9POHyhq9A3fPfWw94RBpXntNfjcildwxplO+SLL/e/mLP295tEUCYOgGcgzRQARiiNxYMflRw4M4UdJQmig6c77PboKpQuCFJeaUNYTe3zUD9eR28nmPGCeF7uMG5TaeS42K64h9pHs36mf02q05psV/iJERRGVZZYr5JOyKcP3/6wxoTdPyB1swFFcVaGilMBQC3BbsJw/fs="
-
+  - stage: lint
+    name: Code style check
+    php: '7.2'
+    script:
+    - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation
+  - stage: test
+    name: Test PHP 7.2
+    php: '7.2'
+    script:
+    - vendor/bin/phpunit
+  - stage: test
+    name: Test PHP 7.3
+    php: '7.3'
+    script:
+    - vendor/bin/phpunit
+  - stage: test
+    name: Test PHP 7.4
+    php: '7.4'
+    script:
+    - vendor/bin/phpunit
+  - stage: report
+    name: Code coverage
+    php: '7.2'
+    git:
+      depth: false
+    script:
+    - vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=test-results.xml
+    - bash <(curl -s https://codecov.io/bash)
+    - sonar-scanner
+    branches:
+      only:
+      - master
+      - develop
+    addons:
+      sonarcloud:
+        organization: tiptopcoder
+        token:
+          secure: adAtt04c5Bl67LIR7MeEMOdtJB3lGE5DHeIULJclLqtMwxeVoj/3wq+RySG2mtHGShX2ajiQzE08mKpyGrC/wlPHVog23OIEco7H6g7MdjNtRoZPXs9SSHBlJAfXjGCZBXFD7QGhNALAR4BQKs4gCTSznUcBP1nl47QWk5KzheV/UdeV9tNe/NHOEXexEA0QYEp28+8K1MpckouH0qLSL33fVDqMnzv8h9EP2oSr6gBpVsqaYMjS05D2S7cz7uQJD0v8gvDXFU9VCK3yzQ6aJWcuawXX9Xcq0/uuV+duDwFZ1mtpb7JP7s2TRO4PR0qnN93qafuePx3LE9MZUEffGBcV8mKtHGQk8RB28QTY5/lhw3RLshZ6WBU0M7JMZCiqvGPc4xjzL/TroNUSpwUUFE0xs8tQDrm0mg7WfuZx/eeegvJlk3cRd5irbpRqCfRRvf6PFR5dvZp3reldIhIKfJquYZv+l+9POHyhq9A3fPfWw94RBpXntNfjcildwxplO+SLL/e/mLP295tEUCYOgGcgzRQARiiNxYMflRw4M4UdJQmig6c77PboKpQuCFJeaUNYTe3zUD9eR28nmPGCeF7uMG5TaeS42K64h9pHs36mf02q05psV/iJERRGVZZYr5JOyKcP3/6wxoTdPyB1swFFcVaGilMBQC3BbsJw/fs=
 cache:
   directories:
-    - vendor
-    - $HOME/.composer/cache
+  - vendor
+  - "$HOME/.composer/cache"
