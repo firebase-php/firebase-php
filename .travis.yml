@@ -10,7 +10,7 @@ stages:
 - report
 before_install:
 - openssl aes-256-cbc -K $encrypted_589568f37856_key -iv $encrypted_589568f37856_iv -in secrets.tar.enc -out tests/fixtures/secrets.tar -d
-- tar xvf tests/fixtures/secrets.tar
+- tar xvf secrets.tar -C tests/fixtures
 - pecl install grpc
 install:
 - composer update --no-progress --no-interaction --no-suggest
