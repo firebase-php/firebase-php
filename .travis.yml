@@ -26,6 +26,7 @@ jobs:
         - vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation
     - stage: test
       name: "Unit test"
+      script:
         - vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage
     - stage: report
       php: "7.2"
