@@ -13,16 +13,24 @@ final class UserImportOptions
      */
     private $hash;
 
+    /**
+     * @var string
+     */
+    private $secretKey;
+
     public function __construct(UserImportOptionsBuilder $builder)
     {
         Validator::isNonNullObject($builder->getHash());
         $this->hash = $builder->getHash();
+        $this->secretKey = $builder->getSecretKey();
     }
 
-    public static function withHash(?Signer $hash = null)
+    public static function withHash(Signer $hash, string $secretKey)
     {
-        Validator::isNonNullObject($hash);
-        return self::builder()->setHash($hash)->build();
+        return self::builder()
+            ->setHash($hash)
+            ->setSecretKey($secretKey)
+            ->build();
     }
 
     public static function builder()
@@ -38,11 +46,19 @@ final class UserImportOptions
         return $this->hash;
     }
 
+    /**
+     * @return string
+     */
+    public function getSecretKey(): string
+    {
+        return $this->secretKey;
+    }
+
     public function getProperties()
     {
         return [
             'hashAlgorithm' => $this->hash->getAlgorithmId(),
-            'signerKey' => base64_encode($this->hash->getAlgorithmId())
+            'signerKey' => base64_encode($this->secretKey)
         ];
     }
 }

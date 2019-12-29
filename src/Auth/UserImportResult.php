@@ -39,7 +39,7 @@ final class UserImportResult
         return $this->users - count($this->errors);
     }
 
-    public function getFailureAccount()
+    public function getFailureCount()
     {
         return count($this->errors);
     }

@@ -13,6 +13,11 @@ class UserImportOptionsBuilder
     private $hash;
 
     /**
+     * @var string
+     */
+    private $secretKey;
+
+    /**
      * @return Signer
      */
     public function getHash(): ?Signer
@@ -27,6 +32,24 @@ class UserImportOptionsBuilder
     public function setHash(?Signer $hash = null): UserImportOptionsBuilder
     {
         $this->hash = $hash;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecretKey(): ?string
+    {
+        return $this->secretKey;
+    }
+
+    /**
+     * @param string $secretKey
+     * @return UserImportOptionsBuilder
+     */
+    public function setSecretKey(?string $secretKey): UserImportOptionsBuilder
+    {
+        $this->secretKey = $secretKey;
         return $this;
     }
 

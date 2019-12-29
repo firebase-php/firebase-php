@@ -118,14 +118,14 @@ class FirebaseAuth
     {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($token, 'ID token must not be null or empty');
-        return $this->getIdTokenVerifier()->verifyToken($token);
+        return $this->getIdTokenVerifier($checkRevoked)->verifyToken($token);
     }
 
     public function revokeRefreshToken(string $uid)
     {
         $this->checkNotDestroyed();
         Validator::isNonEmptyString($uid, 'uid must not be null or empty');
-        $currentTimeSeconds = intval(Carbon::now()->timestamp/1000);
+        $currentTimeSeconds = intval(Carbon::now()->timestamp);
         $request = (new UpdateRequest($uid))->setValidSince($currentTimeSeconds);
         $this->getUserManager()->updateUser($request);
     }

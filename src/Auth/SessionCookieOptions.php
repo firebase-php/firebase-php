@@ -24,4 +24,9 @@ class SessionCookieOptions
     {
         return CarbonInterval::millisecond($this->expiresIn)->totalSeconds;
     }
+
+    public static function builder()
+    {
+        return new SessionCookieOptionsBuilder();
+    }
 }

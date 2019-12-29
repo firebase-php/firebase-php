@@ -35,10 +35,13 @@ class UserImportRequest
             Validator::checkArgument(
                 !is_null($options) && !is_null($options->getHash()),
                 'UserImportHash option is required when at least one user has a password. Provide '
-                . 'a UserImportHash via UserImportOptions.withHash().'
+                . 'a UserImportHash via UserImportOptions::withHash().'
             );
+            $this->payload = array_merge(['users' => $this->users], $options->getProperties());
+        } else {
+            $this->payload = array_merge(['users' => $this->users]);
         }
-        $this->payload = array_merge(['users' => $this->users], $options);
+
     }
 
     public function getUsersCount()

@@ -20,10 +20,11 @@ class UserImportOptionsTest extends TestCase
         $hash = new Sha512();
         $options = UserImportOptions::builder()
             ->setHash($hash)
+            ->setSecretKey('secret')
             ->build();
         $expected = [
             'hashAlgorithm' => 'HS512',
-            'signerKey' => base64_encode('HS512')
+            'signerKey' => base64_encode('secret')
         ];
         $this->assertEquals($expected, $options->getProperties());
         $this->assertSame($hash, $options->getHash());

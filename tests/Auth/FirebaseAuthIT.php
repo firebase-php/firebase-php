@@ -2,20 +2,32 @@
 
 namespace Firebase\Tests\Auth;
 
+use Carbon\Carbon;
+use Carbon\CarbonInterval;
 use Faker\Factory;
 use Faker\Provider\Base;
+use Firebase\Auth\ActionCodeSettings;
 use Firebase\Auth\FirebaseAuth;
 use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseUserManager;
+use Firebase\Auth\ImportUserRecord;
 use Firebase\Auth\Internal\DownloadAccountResponse;
+use Firebase\Auth\RevocationCheckDecorator;
+use Firebase\Auth\SessionCookieOptions;
+use Firebase\Auth\UserImportOptions;
 use Firebase\Auth\UserInfo;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
+use Firebase\FirebaseOptionsBuilder;
+use Firebase\ImplFirebaseTrampolines;
 use Firebase\Tests\Testing\IntegrationTestUtils;
 use Firebase\Tests\Testing\RandomUser;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Uri;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+use MongoDB\Driver\Session;
 use phpseclib\Crypt\Random;
 use PHPUnit\Framework\TestCase;
 
@@ -260,6 +272,244 @@ class FirebaseAuthIT extends TestCase
         } finally {
             self::$auth->deleteUser($uid);
         }
+    }
+
+    public function testCustomToken()
+    {
+        $customToken = self::$auth->createCustomToken('user1');
+        $idToken = $this->signInWithCustomToken($customToken);
+        $decodedToken = self::$auth->verifyIdToken($idToken);
+        self::assertEquals('user1', $decodedToken->getUid());
+    }
+
+    public function testVerifyIdToken()
+    {
+        $customToken = self::$auth->createCustomToken('user2');
+        $idToken = $this->signInWithCustomToken($customToken);
+        $decodedToken = self::$auth->verifyIdToken($idToken, true);
+        self::assertEquals('user2', $decodedToken->getUid());
+        sleep(1);
+        self::$auth->revokeRefreshToken('user2');
+        $decodedToken = self::$auth->verifyIdToken($idToken, false);
+        self::assertEquals('user2', $decodedToken->getUid());
+
+        try {
+            self::$auth->verifyIdToken($idToken, true);
+            self::fail('expecting exception');
+        } catch (FirebaseAuthException $e) {
+            self::assertEquals(RevocationCheckDecorator::ID_TOKEN_REVOKED_ERROR, $e->getCode());
+        }
+        $idToken = $this->signInWithCustomToken($customToken);
+        $decodedToken = self::$auth->verifyIdToken($idToken, true);
+        self::assertEquals('user2', $decodedToken->getUid());
+        self::$auth->deleteUser('user2');
+    }
+
+    public function testVerifySessionCookie()
+    {
+        $customToken = self::$auth->createCustomToken('user3');
+        $idToken = $this->signInWithCustomToken($customToken);
+
+        $options = SessionCookieOptions::builder()
+            ->setExpiresIn(CarbonInterval::hour(1)->totalMilliseconds)
+            ->build();
+        $sessionCookie = self::$auth->createSessionCookie($idToken, $options);
+        self::assertFalse(empty($sessionCookie));
+
+        $decodedToken = self::$auth->verifySessionCookie($sessionCookie);
+        self::assertEquals('user3', $decodedToken->getUid());
+        $decodedToken = self::$auth->verifySessionCookie($sessionCookie, true);
+        self::assertEquals('user3', $decodedToken->getUid());
+
+        sleep(1);
+
+        self::$auth->revokeRefreshToken('user3');
+        $decodedToken = self::$auth->verifySessionCookie($sessionCookie, false);
+        self::assertEquals('user3', $decodedToken->getUid());
+
+        try {
+            self::$auth->verifySessionCookie($sessionCookie, true);
+            self::fail('expecting exception');
+        } catch (FirebaseAuthException $e) {
+            self::assertEquals(RevocationCheckDecorator::SESSION_COOKIE_REVOKED_ERROR, $e->getCode());
+        }
+
+        $idToken = $this->signInWithCustomToken($customToken);
+        $sessionCookie = self::$auth->createSessionCookie($idToken, $options);
+        $decodedToken = self::$auth->verifySessionCookie($sessionCookie, true);
+        self::assertEquals('user3', $decodedToken->getUid());
+        self::$auth->deleteUser('user3');
+    }
+
+    public function testCustomTokenWithClaims()
+    {
+        $devClaims = [
+            'premium' => true,
+            'subscription' => 'golden'
+        ];
+
+        $customToken = self::$auth->createCustomToken('user2', $devClaims);
+        $idToken = $this->signInWithCustomToken($customToken);
+        $decodedToken = self::$auth->verifyIdToken($idToken);
+        self::assertEquals('user2', $decodedToken->getUid());
+        self::assertTrue(isset($decodedToken->getClaims()['premium']));
+        self::assertEquals('golden', $decodedToken->getClaims()['subscription']);
+    }
+
+    public function testImportUsers()
+    {
+        $randomUser = RandomUser::create();
+        $user = ImportUserRecord::builder()
+            ->setUid($randomUser->getUid())
+            ->setEmail($randomUser->getEmail())
+            ->build();
+
+        $result = self::$auth->importUsers([$user]);
+        self::assertEquals(1, $result->getSuccessCount());
+        self::assertEquals(0, $result->getFailureCount());
+
+        $savedUser = self::$auth->getUser($randomUser->getUid());
+        self::assertEquals($randomUser->getEmail(), $savedUser->getEmail());
+        self::$auth->deleteUser($randomUser->getUid());
+    }
+
+    public function testImportUsersWithPassword()
+    {
+        self::markTestIncomplete('Need enum of password algorithm from firebase');
+    }
+
+    public function testGeneratePasswordResetLink()
+    {
+        $user = RandomUser::create();
+        self::$auth->createUser(
+            (new CreateRequest())
+            ->setUid($user->getUid())
+            ->setEmail($user->getEmail())
+            ->setEmailVerified(false)
+            ->setPassword('password')
+        );
+        $link = self::$auth->generatePasswordResetLink(
+            $user->getEmail(),
+            ActionCodeSettings::builder()
+            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+            ->setHandleCodeInApp(false)
+            ->build()
+        );
+        $linkParams = $this->parseLinkParameters($link);
+        self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
+        $email = $this->resetPassword(
+            $user->getEmail(),
+            'password',
+            'newPassword',
+            $linkParams['oobCode']
+        );
+        self::assertEquals($user->getEmail(), $email);
+        self::assertTrue(self::$auth->getUser($user->getUid())->isEmailVerified());
+        self::$auth->deleteUser($user->getUid());
+    }
+
+    public function testGenerateEmailVerificationResetLink()
+    {
+        $user = RandomUser::create();
+        self::$auth->createUser(
+            (new CreateRequest())
+            ->setUid($user->getUid())
+            ->setEmail($user->getEmail())
+            ->setEmailVerified(false)
+            ->setPassword('password')
+        );
+        $link = self::$auth->generateEmailVerificationLink(
+            $user->getEmail(),
+            ActionCodeSettings::builder()
+            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+            ->setHandleCodeInApp(false)
+            ->build()
+        );
+        $linkParams = $this->parseLinkParameters($link);
+        self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
+        self::assertEquals('verifyEmail', $linkParams['mode']);
+        self::$auth->deleteUser($user->getUid());
+    }
+
+    public function testGenerateSignInWithEmailLink()
+    {
+        $user = RandomUser::create();
+        self::$auth->createUser(
+            (new CreateRequest())
+            ->setUid($user->getUid())
+            ->setEmail($user->getEmail())
+            ->setEmailVerified(false)
+            ->setPassword('password')
+        );
+        $link = self::$auth->generateSignInWithEmailLink(
+            $user->getEmail(),
+            ActionCodeSettings::builder()
+            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+            ->setHandleCodeInApp(false)
+            ->build()
+        );
+        $linkParams = $this->parseLinkParameters($link);
+        self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
+        $idToken = $this->signInWithEmailLink($user->getEmail(), $linkParams['oobCode']);
+        self::assertFalse(empty($idToken));
+        self::assertTrue(self::$auth->getUser($user->getUid())->isEmailVerified());
+        self::$auth->deleteUser($user->getUid());
+    }
+
+    private function signInWithEmailLink(string $email, string $oobCode)
+    {
+        $url = self::EMAIL_LINK_SIGN_IN_URL . '?key=' . IntegrationTestUtils::getApiKey();
+        $content = [
+            'email' => $email,
+            'oobCode' => $oobCode
+        ];
+        $request = new Request(
+            'POST',
+            $url,
+            [],
+            json_encode($content)
+        );
+        $response = (new Client())->send($request);
+        $json = json_decode($response->getBody(), true);
+        return $json['idToken'];
+    }
+
+    private function parseLinkParameters(string $link)
+    {
+        $uri = new Uri($link);
+        $result = [];
+        $segments = explode('&', $uri->getQuery());
+
+        foreach ($segments as $segment) {
+            $pairs = explode('=', $segment);
+            $result[$pairs[0]] = utf8_decode(urldecode($pairs[1]));
+        }
+
+        return $result;
+    }
+
+    private function resetPassword(
+        string $email,
+        string $oldPassword,
+        string $newPassword,
+        string $oobCode
+    ) {
+        $url = self::RESET_PASSWORD_URL . '?key=' . IntegrationTestUtils::getApiKey();
+        $content = [
+            'email' => $email,
+            'oldPassword' => $oldPassword,
+            'newPassword' => $newPassword,
+            'oobCode' => $oobCode
+        ];
+        $request = new Request(
+            'POST',
+            $url,
+            [],
+            json_encode($content)
+        );
+        $response = (new Client())->send($request);
+        $json = json_decode($response->getBody(), true);
+        return $json['email'];
     }
 
     private function randomPhoneNumber()

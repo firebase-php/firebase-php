@@ -13,7 +13,7 @@ class SessionCookieOptionsBuilder
     /**
      * @return int
      */
-    public function getExpiresIn(): int
+    public function getExpiresIn()
     {
         return $this->expiresIn;
     }
@@ -22,7 +22,7 @@ class SessionCookieOptionsBuilder
      * @param int $expiresInMilli
      * @return SessionCookieOptionsBuilder
      */
-    public function setExpiresIn(int $expiresInMilli)
+    public function setExpiresIn($expiresInMilli)
     {
         $this->expiresIn = $expiresInMilli;
         return $this;
