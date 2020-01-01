@@ -2,6 +2,7 @@
 
 namespace Firebase;
 
+use Firebase\Auth\ServiceAccount;
 use Firebase\Internal\FirebaseService;
 use Firebase\Util\Validator\Validator;
 use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
@@ -122,11 +123,11 @@ class FirebaseApp
 
     private static function getOptionsFromEnvironment(): FirebaseOptions
     {
+        $options = (new FirebaseOptions())
+            ->setServiceAccount(new ServiceAccount());
         $defaultConfig = getenv(self::FIREBASE_CONFIG_ENV_VAR);
         if (empty($defaultConfig)) {
-            return (new FirebaseOptionsBuilder())
-                ->setCredentials(FirebaseOptions::getApplicationDefaultCredentials())
-                ->build();
+            return $options;
         }
         $contents = null;
         if ($defaultConfig[0] === '{') {
@@ -142,19 +143,16 @@ class FirebaseApp
         if (!is_array($contentArray)) {
             throw new \InvalidArgumentException();
         }
-        $builder = new FirebaseOptionsBuilder();
-        $builder
+        $options
             ->setDatabaseAuthVariableOverride($contentArray['databaseAuthVariableOverride'] ?? null)
-            ->setDatabaseUrl($contentArray['databaseUrl'] ?? null)
-            ->setConnectTimeout($contentArray['connectTimeout'] ?? 0)
-            ->setReadTimeout($contentArray['readTimeout'] ?? 0);
+            ->setDatabaseUrl($contentArray['databaseUrl'] ?? null);
         if (isset($contentArray['projectId'])) {
-            $builder->setProjectId($contentArray['projectId']);
+            $options->setProjectId($contentArray['projectId']);
         }
         if (isset($contentArray['storageBucket'])) {
-            $builder->setStorageBucket($contentArray['storageBucket']);
+            $options->setStorageBucket($contentArray['storageBucket']);
         }
-        return $builder->setCredentials(FirebaseOptions::getApplicationDefaultCredentials())->build();
+        return $options;
     }
 
     /**
@@ -180,9 +178,9 @@ class FirebaseApp
         $projectId = $this->getOptions()->getProjectId();
 
         if (empty($projectId)) {
-            $credentials = $this->getOptions()->getCredentials();
-            if ($credentials instanceof ServiceAccountCredentials) {
-                $projectId = $credentials->getProjectId();
+            $sa = $this->getOptions()->getServiceAccount();
+            if ($sa instanceof ServiceAccount) {
+                $projectId = $sa->getProjectId();
             }
         }
 
@@ -206,7 +204,6 @@ class FirebaseApp
         foreach ($this->services as $key => $service) {
             $this->services[$key]->destroy();
         }
-        // TODO: Test memory leak
         $this->services = [];
         $this->deleted = true;
         unset(FirebaseApp::$instances[$this->name]);

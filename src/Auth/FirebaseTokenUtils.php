@@ -25,6 +25,7 @@ final class FirebaseTokenUtils
 
     public static function createTokenFactory(FirebaseApp $app)
     {
+        $credentials = $app->getOptions()->getCredentials();
         return new FirebaseTokenFactory(CryptoSigners::getCryptoSigner($app));
     }
 

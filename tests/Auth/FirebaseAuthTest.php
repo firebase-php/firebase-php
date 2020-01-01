@@ -10,6 +10,7 @@ use Firebase\Auth\FirebaseTokenVerifierImpl;
 use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\ServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Firebase\Tests\Testing\TestUtils;
@@ -20,9 +21,8 @@ class FirebaseAuthTest extends TestCase
 {
     private static function FIREBASE_OPTIONS()
     {
-        return FirebaseOptions::builder()
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->build();
+        return (new FirebaseOptions())
+            ->setServiceAccount(TestUtils::getServiceAccount(MockServiceAccount::EDITOR()));
     }
 
     protected function tearDown(): void

@@ -5,14 +5,23 @@ namespace Firebase\Tests\Testing;
 
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Token;
-use MyCLabs\Enum\Enum;
+use Firebase\Auth\ServiceAccount;
 
-class ServiceAccount
+class MockServiceAccount
 {
-    private $json;
+    /**
+     * @var ServiceAccount|null
+     */
+    private $serviceAccount;
 
+    /**
+     * @var string|null
+     */
     private $cert;
 
+    /**
+     * @var string|null
+     */
     private $email;
 
     public static function OWNER()
@@ -21,7 +30,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/owner_public_key.pem');
         $email = 'mock-project-id-owner@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function EDITOR()
@@ -30,7 +39,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/editor_public_key.pem');
         $email = 'mock-project-id-editor@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function VIEWER()
@@ -39,7 +48,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/viewer_public_key.pem');
         $email = 'mock-project-id-viewer@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function NONE()
@@ -48,41 +57,36 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/none_public_key.pem');
         $email = 'mock-project-id-none@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
+    }
+
+    public static function EMPTY()
+    {
+        $json = TestUtils::loadResource('/service_accounts/empty.json');
+        $cert = TestUtils::loadResource('/service_accounts/empty_public_key.pem');
+        $email = 'mock-project-id-empty@mock-project-id.iam.gserviceaccount.com';
+
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public function __construct(string $email, string $json, string $cert)
     {
-        $this->json = $json;
+        $this->serviceAccount = new ServiceAccount($json);
         $this->cert = $cert;
         $this->email = $email;
     }
 
     public function getPrivateKey()
     {
-//        $beginMark = "-----BEGIN PRIVATE KEY-----\\n";
-//        $endMark = "-----END PRIVATE KEY-----\\n";
-//        $substr = substr(
-//            $this->json,
-//            strpos($this->json, $beginMark) + strlen($beginMark),
-//            strpos($this->json, $endMark)
-//        );
-//
-//        return str_replace("\\n", '', $substr);
-        return json_decode($this->json, true)['private_key'];
+        return $this->serviceAccount->getPrivateKey();
     }
 
     /**
-     * @return string
+     * @return ServiceAccount|null
      */
-    public function asString(): string
+    public function getServiceAccount(): ?ServiceAccount
     {
-        return $this->json;
-    }
-
-    public function asArray()
-    {
-        return json_decode($this->json, true);
+        return $this->serviceAccount;
     }
 
     /**

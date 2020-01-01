@@ -25,6 +25,8 @@ class TestUtils
 
     private static $defaultCredentials = null;
 
+    private static $defaultServiceAccount = null;
+
     public static function verifySignature(Token $token, array $keys = [])
     {
         foreach ($keys as $key) {
@@ -68,6 +70,15 @@ class TestUtils
         return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount->asArray());
     }
 
+    public static function getServiceAccount($mockServiceAccount)
+    {
+        if ($mockServiceAccount instanceof MockServiceAccount) {
+            return $mockServiceAccount->getServiceAccount();
+        }
+
+        return new \Firebase\Auth\ServiceAccount($mockServiceAccount);
+    }
+
     /**
      * @param string $path
      * @return false|string
@@ -77,6 +88,18 @@ class TestUtils
         $fileContents = file_get_contents(__DIR__ . '/../fixtures' . $path);
         Validator::checkArgument($fileContents !== false, sprintf('Failed to load resource: %s', $path));
         return $fileContents;
+    }
+
+    public static function getServiceAccountFromDefaultCredentials()
+    {
+        if (!is_null(self::$defaultServiceAccount)) {
+            return self::$defaultServiceAccount;
+        }
+        $crdentialsPath = realpath(__DIR__ . '/../fixtures/service_accounts/editor.json');
+        self::setEnvironmentVariables([
+            'GOOGLE_APPLICATION_CREDENTIALS' => $crdentialsPath
+        ]);
+        return new \Firebase\Auth\ServiceAccount();
     }
 
     public static function getApplicationDefaultCredentials()

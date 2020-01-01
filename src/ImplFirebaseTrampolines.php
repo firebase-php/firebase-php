@@ -11,6 +11,10 @@ class ImplFirebaseTrampolines
     {
     }
 
+    public static function getServiceAccount(FirebaseApp $app) {
+        return $app->getOptions()->getServiceAccount();
+    }
+
     public static function getCredentials(FirebaseApp $app)
     {
         return $app->getOptions()->getCredentials();

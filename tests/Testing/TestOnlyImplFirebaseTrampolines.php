@@ -5,7 +5,8 @@ namespace Firebase\Tests\Testing;
 
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
+use Google\Auth\CredentialsLoader;
+use Firebase\Auth\ServiceAccount;
 
 final class TestOnlyImplFirebaseTrampolines
 {
@@ -20,8 +21,12 @@ final class TestOnlyImplFirebaseTrampolines
 
     public static function getToken(FirebaseApp $app = null, bool $forceRefresh = false)
     {
-        /** @var ServiceAccountCredentials $credentials */
-        $credentials = $app->getOptions()->getCredentials();
+        /** @var ServiceAccount $serviceAccount */
+        $serviceAccount = $app->getOptions()->getServiceAccount();
+        $credentials = CredentialsLoader::makeCredentials(
+            FirebaseOptions::FIREBASE_SCOPES,
+            $serviceAccount->jsonSerialize()
+        );
         $token = $credentials->fetchAuthToken(TestUtils::getMockHandler());
         return $token['access_token'];
     }

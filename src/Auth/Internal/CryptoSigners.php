@@ -5,7 +5,6 @@ namespace Firebase\Auth\Internal;
 
 use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 

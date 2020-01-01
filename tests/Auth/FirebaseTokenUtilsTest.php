@@ -8,6 +8,7 @@ use Firebase\Auth\Internal\GooglePublicKeysManager;
 use Firebase\Auth\Internal\IdTokenVerifier;
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Google\Auth\CredentialsLoader;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +27,11 @@ class FirebaseTokenUtilsTest extends TestCase
         return CredentialsLoader::makeInsecureCredentials();
     }
 
+    final private static function MOCK_SERVICE_ACCOUNT()
+    {
+        return MockServiceAccount::EMPTY()->getServiceAccount();
+    }
+
     protected function tearDown(): void
     {
         TestOnlyImplFirebaseTrampolines::clearInstancesForTest();
@@ -34,10 +40,9 @@ class FirebaseTokenUtilsTest extends TestCase
     public function testCreateIdTokenVerifier()
     {
         $app = FirebaseApp::initializeApp(
-            FirebaseOptions::builder()
-            ->setCredentials(self::MOCK_CREDENTIALS())
+            (new FirebaseOptions())
+            ->setServiceAccount(self::MOCK_SERVICE_ACCOUNT())
             ->setProjectId(self::TEST_PROJECT_ID)
-            ->build()
         );
 
         $idTokenVerifier = FirebaseTokenUtils::createIdTokenVerifier($app);
@@ -61,9 +66,8 @@ class FirebaseTokenUtilsTest extends TestCase
     public function testCreateIdTokenVerifierWithoutProjectId()
     {
         $app = FirebaseApp::initializeApp(
-            FirebaseOptions::builder()
-            ->setCredentials(self::MOCK_CREDENTIALS())
-            ->build()
+            (new FirebaseOptions())
+                ->setServiceAccount(self::MOCK_SERVICE_ACCOUNT())
         );
         $this->expectExceptionMessage('Must initialize FirebaseApp with a project ID to call verifyIdToken()');
         FirebaseTokenUtils::createIdTokenVerifier($app);
@@ -72,10 +76,9 @@ class FirebaseTokenUtilsTest extends TestCase
     public function testSessionCookieVerifier()
     {
         $app = FirebaseApp::initializeApp(
-            FirebaseOptions::builder()
-                ->setCredentials(self::MOCK_CREDENTIALS())
+            (new FirebaseOptions())
+                ->setServiceAccount(self::MOCK_SERVICE_ACCOUNT())
                 ->setProjectId(self::TEST_PROJECT_ID)
-                ->build()
         );
 
         $cookieVerifier = FirebaseTokenUtils::createSessionCookieVerifier($app);
@@ -99,9 +102,8 @@ class FirebaseTokenUtilsTest extends TestCase
     public function testCreateSessionCookieVerifierWithoutProjectId()
     {
         $app = FirebaseApp::initializeApp(
-            FirebaseOptions::builder()
-                ->setCredentials(self::MOCK_CREDENTIALS())
-                ->build()
+            (new FirebaseOptions())
+                ->setServiceAccount(self::MOCK_SERVICE_ACCOUNT())
         );
         $this->expectExceptionMessage('Must initialize FirebaseApp with a project ID to call verifySessionCookie()');
         FirebaseTokenUtils::createSessionCookieVerifier($app);

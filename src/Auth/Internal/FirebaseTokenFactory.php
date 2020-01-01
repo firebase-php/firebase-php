@@ -5,6 +5,7 @@ namespace Firebase\Auth\Internal;
 
 use Carbon\Carbon;
 use Firebase\Util\Validator\Validator;
+use Google\Auth\SignBlobInterface;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 
 class FirebaseTokenFactory
@@ -15,7 +16,7 @@ class FirebaseTokenFactory
 
     private $signer;
 
-    public function __construct(CryptoSigner $signer)
+    public function __construct(SignBlobInterface $signer)
     {
         $this->signer = $signer;
     }
@@ -31,8 +32,8 @@ class FirebaseTokenFactory
         $iat = intval(Carbon::now()->timestamp);
         $payload = [
             'uid' => $uid,
-            'iss' => $this->signer->getAccount(),
-            'sub' => $this->signer->getAccount(),
+            'iss' => $this->signer->getClientName(),
+            'sub' => $this->signer->getClientName(),
             'aud' => self::FIREBASE_AUDIENCE,
             'iat' => $iat,
             'exp' => $iat + self::TOKEN_DURATION_SECONDS
@@ -56,7 +57,7 @@ class FirebaseTokenFactory
         $headerString = base64_encode(json_encode($header));
         $payloadString = base64_encode(json_encode($payload));
         $content = sprintf('%s.%s', $headerString, $payloadString);
-        $signature = $this->signer->sign($content);
+        $signature = $this->signer->signBlob($content);
         return sprintf('%s.%s', $content, $signature);
     }
 }

@@ -3,12 +3,10 @@
 
 namespace Firebase\Tests;
 
+use Firebase\Auth\ServiceAccount;
 use Firebase\FirebaseOptions;
-use Firebase\FirebaseOptionsBuilder;
-use Firebase\Tests\Testing\ServiceAccount;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\TestUtils;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
-use Google\Auth\CredentialsLoader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
@@ -20,114 +18,76 @@ class FirebaseOptionsTest extends TestCase
 
     final private static function ALL_VALUES_OPTIONS()
     {
-        return (new FirebaseOptionsBuilder())
+        return (new FirebaseOptions())
+            ->setProjectId(self::FIREBASE_PROJECT_ID)
             ->setDatabaseUrl(self::FIREBASE_DB_URL)
             ->setStorageBucket(self::FIREBASE_STORAGE_BUCKET)
-            ->setProjectId(self::FIREBASE_PROJECT_ID)
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->build();
+            ->setServiceAccount(MockServiceAccount::EDITOR()->getServiceAccount());
     }
 
     public function testCreateOptionsWithAllValuesSet()
     {
-        $options = (new FirebaseOptionsBuilder())
+        $options = (new FirebaseOptions())
+            ->setServiceAccount(TestUtils::getServiceAccount(MockServiceAccount::EDITOR()))
             ->setDatabaseUrl(self::FIREBASE_DB_URL)
             ->setStorageBucket(self::FIREBASE_STORAGE_BUCKET)
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->setProjectId(self::FIREBASE_PROJECT_ID)
-            ->setConnectTimeout(30000)
-            ->setReadTimeout(60000)
-            ->build();
+            ->setProjectId(self::FIREBASE_PROJECT_ID);
+
         $this->assertEquals(self::FIREBASE_DB_URL, $options->getDatabaseUrl());
         $this->assertEquals(self::FIREBASE_STORAGE_BUCKET, $options->getStorageBucket());
         $this->assertEquals(self::FIREBASE_PROJECT_ID, $options->getProjectId());
-        $this->assertEquals(30000, $options->getConnectTimeout());
-        $this->assertEquals(60000, $options->getReadTimeout());
 
-        $creds = $options->getCredentials();
-        $this->assertNotNull($creds);
-        $this->assertTrue($creds instanceof ServiceAccountCredentials);
-        $this->assertEquals(TestUtils::getCertCredential(ServiceAccount::EDITOR())->getClientName(), $creds->getClientName());
+        $serviceAccount = $options->getServiceAccount();
+        $this->assertNotNull($serviceAccount);
+        $this->assertTrue($serviceAccount instanceof ServiceAccount);
+        $this->assertEquals(TestUtils::getServiceAccount(MockServiceAccount::EDITOR())->getClientEmail(), $serviceAccount->getClientEmail());
     }
 
     public function testCreateOptionsWithOnlyMandatoryValuesSet()
     {
-        $options = (new FirebaseOptionsBuilder())
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->build();
+        $options = (new FirebaseOptions())
+            ->setServiceAccount(TestUtils::getServiceAccount(MockServiceAccount::EDITOR()));
         $this->assertNull($options->getDatabaseUrl());
         $this->assertNull($options->getStorageBucket());
-        $this->assertEquals(0, $options->getConnectTimeout());
-        $this->assertEquals(0, $options->getReadTimeout());
 
-        $creds = $options->getCredentials();
-        $this->assertNotNull($creds);
-        $this->assertTrue($creds instanceof ServiceAccountCredentials);
-        $this->assertEquals(TestUtils::getCertCredential(ServiceAccount::EDITOR())->getClientName(), $creds->getClientName());
+        $serviceAccount = $options->getServiceAccount();
+        $this->assertNotNull($serviceAccount);
+        $this->assertTrue($serviceAccount instanceof ServiceAccount);
+        $this->assertEquals(TestUtils::getServiceAccount(MockServiceAccount::EDITOR())->getClientEmail(), $serviceAccount->getClientEmail());
     }
 
-    public function testCreateOptionsWithCredentialMissing()
+    public function testCreateOptionsWithServiceAccountMissing()
     {
         $this->expectException(InvalidArgumentException::class);
-        (new FirebaseOptionsBuilder())->build()->getCredentials();
-    }
-
-    public function testCreateOptionsWithNullCredentials()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        (new FirebaseOptionsBuilder())
-            ->setCredentials(null)
-            ->build();
+        (new FirebaseOptions())->getServiceAccount();
     }
 
     public function testCreateOptionsWithStorageBucketUrl()
     {
         $this->expectException(InvalidArgumentException::class);
-        (new FirebaseOptionsBuilder())
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
+        (new FirebaseOptions())
+            ->setServiceAccount(TestUtils::getServiceAccount(MockServiceAccount::EDITOR()))
             ->setStorageBucket('gs://mock-storage-bucket')
             ->build();
     }
 
     public function testCheckToBuilderCreatesNewEquivalentInstance()
     {
-        $options = (new FirebaseOptionsBuilder(self::ALL_VALUES_OPTIONS()))->build();
+        $options = self::ALL_VALUES_OPTIONS();
         $this->assertNotSame(self::ALL_VALUES_OPTIONS(), $options);
-        $this->assertEquals(self::ALL_VALUES_OPTIONS()->getCredentials(), $options->getCredentials());
+        $this->assertEquals(self::ALL_VALUES_OPTIONS()->getServiceAccount(), $options->getServiceAccount());
         $this->assertEquals(self::ALL_VALUES_OPTIONS()->getDatabaseUrl(), $options->getDatabaseUrl());
         $this->assertEquals(self::ALL_VALUES_OPTIONS()->getProjectId(), $options->getProjectId());
-        $this->assertEquals(self::ALL_VALUES_OPTIONS()->getConnectTimeout(), $options->getConnectTimeout());
-        $this->assertEquals(self::ALL_VALUES_OPTIONS()->getReadTimeout(), $options->getReadTimeout());
-    }
-
-    public function testCreateOptionsWithInvalidConnectTimeout()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        (new FirebaseOptionsBuilder())
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->setConnectTimeout(-1)
-            ->build();
-    }
-
-    public function testCreateOptionsWithInvalidReadTimeout()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        (new FirebaseOptionsBuilder())
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
-            ->setReadTimeout(-1)
-            ->build();
     }
 
     public function testNotEquals()
     {
-        $creds = TestUtils::getCertCredential(ServiceAccount::EDITOR());
-        $options1 = (new FirebaseOptionsBuilder())
-            ->setCredentials($creds)
-            ->build();
-        $options2 = (new FirebaseOptionsBuilder())
-            ->setCredentials($creds)
-            ->setDatabaseUrl('https://test.firebaseio.com')
-            ->build();
+        $sa = TestUtils::getServiceAccount(MockServiceAccount::EDITOR());
+        $options1 = (new FirebaseOptions())
+            ->setServiceAccount($sa);
+        $options2 = (new FirebaseOptions())
+            ->setServiceAccount($sa)
+            ->setDatabaseUrl('https://test.firebaseio.com');
         $this->assertNotEquals($options1, $options2);
     }
 }
