@@ -4,10 +4,8 @@
 namespace Firebase;
 
 use Firebase\Util\Validator\Validator;
-use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
+use Google\Auth\ApplicationDefaultCredentials;
+use Google\Auth\SignBlobInterface;
 
 final class FirebaseOptions
 {
@@ -30,77 +28,62 @@ final class FirebaseOptions
     ];
 
     /**
-     * @var string
+     * @var string|null
      */
     private $databaseUrl;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $storageBucket;
 
     /**
-     * @var ServiceAccountCredentials|mixed
-     */
-    private $credentials;
-
-    /**
-     * @var array
+     * @var array|null
      */
     private $databaseAuthVariableOverride;
 
     /**
-     * @var string
-     */
-    private $projectId;
-
-    /**
-     * @var string
+     * @var string|null
      */
     private $serviceAccountId;
 
     /**
-     * @var int
+     * @var string|null
      */
-    private $connectTimeout;
+    private $projectId;
 
     /**
-     * @var int
+     * @var array|null
      */
-    private $readTimeout;
+    private $httpMiddlewares;
 
     /**
-     * @var ClientInterface
+     * @var array|null
      */
-    private $httpClient;
+    private $httpConfigs;
+
+    /**
+     * @var SignBlobInterface|null
+     */
+    private $credentials;
 
     public function __construct(FirebaseOptionsBuilder $builder)
     {
         $this->databaseUrl = $builder->getDatabaseUrl();
-        $this->credentials = Validator::isNonNullObject($builder->getCredentials(), 'FirebaseOptions must be initialized with setCredentials().');
         $this->databaseAuthVariableOverride = $builder->getDatabaseAuthVariableOverride();
         $this->projectId = $builder->getProjectId();
         if (!empty($builder->getStorageBucket())) {
             preg_match('/^gs:\\/\\//', $builder->getStorageBucket(), $matches);
             Validator::checkArgument(empty($matches), 'StorageBucket must not include "gs://" prefix.');
         }
-
-        $this->httpClient = $builder->getHttpClient();
-        $this->serviceAccountId = empty($builder->getServiceAccountId()) ? null : $builder->getServiceAccountId();
         $this->storageBucket = $builder->getStorageBucket();
-        Validator::checkArgument($builder->getConnectTimeout() >= 0);
-        $this->connectTimeout = $builder->getConnectTimeout();
-        Validator::checkArgument($builder->getReadTimeout() >= 0);
-        $this->readTimeout = $builder->getReadTimeout();
-    }
-
-    public static function builder()
-    {
-        return new FirebaseOptionsBuilder();
+        $this->credentials = Validator::isNonNullObject($builder->getCredentials(), 'FirebaseOptions must be initialized with setCredentials().');
+        $this->httpMiddlewares = $builder->getHttpMiddlewares() ?? [];
+        $this->httpConfigs = $builder->getHttpConfigs() ?? [];
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getDatabaseUrl(): ?string
     {
@@ -108,7 +91,17 @@ final class FirebaseOptions
     }
 
     /**
-     * @return string
+     * @param string|null $databaseUrl
+     * @return FirebaseOptions
+     */
+    public function setDatabaseUrl(?string $databaseUrl): FirebaseOptions
+    {
+        $this->databaseUrl = $databaseUrl;
+        return $this;
+    }
+
+    /**
+     * @return string|null
      */
     public function getStorageBucket(): ?string
     {
@@ -116,15 +109,51 @@ final class FirebaseOptions
     }
 
     /**
-     * @return ServiceAccountCredentials|mixed
+     * @param string|null $storageBucket
+     * @return FirebaseOptions
      */
-    public function getCredentials()
+    public function setStorageBucket(?string $storageBucket): FirebaseOptions
     {
-        return $this->credentials;
+        if (!empty($storageBucket)) {
+            preg_match('/^gs:\\/\\//', $storageBucket, $matches);
+            Validator::checkArgument(empty($matches), 'StorageBucket must not include "gs://" prefix.');
+        }
+        $this->storageBucket = $storageBucket;
+        return $this;
     }
 
     /**
-     * @return array
+     * @return SignBlobInterface|null
+     */
+    public function getCredentials()
+    {
+        return $this->validateCredentials($this->credentials);
+    }
+
+    /**
+     * @param SignBlobInterface|mixed $credentials
+     * @return FirebaseOptions
+     */
+    public function setCredentials($credentials)
+    {
+        Validator::isNonNullObject(
+            $credentials,
+            'FirebaseOptions must be initialized with setCredentials().'
+        );
+        $this->credentials = $this->validateCredentials($credentials);
+        return $this;
+    }
+
+    private function validateCredentials($credentials)
+    {
+        return Validator::isNonNullObject(
+            $credentials,
+            'FirebaseOptions must be initialized with setCredentials().'
+        );
+    }
+
+    /**
+     * @return array|null
      */
     public function getDatabaseAuthVariableOverride(): ?array
     {
@@ -132,15 +161,53 @@ final class FirebaseOptions
     }
 
     /**
-     * @return string
+     * @param array|null $databaseAuthVariableOverride
+     * @return FirebaseOptions
      */
-    public function getProjectId(): ?string
+    public function setDatabaseAuthVariableOverride(?array $databaseAuthVariableOverride): FirebaseOptions
     {
-        return $this->projectId;
+        $this->databaseAuthVariableOverride = $databaseAuthVariableOverride;
+        return $this;
     }
 
     /**
-     * @return string
+     * @return array|null
+     */
+    public function getHttpMiddlewares(): ?array
+    {
+        return $this->httpMiddlewares;
+    }
+
+    /**
+     * @param array|null $httpMiddlewares
+     * @return FirebaseOptions
+     */
+    public function setHttpMiddlewares(?array $httpMiddlewares): FirebaseOptions
+    {
+        $this->httpMiddlewares = $httpMiddlewares;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getHttpConfigs(): ?array
+    {
+        return $this->httpConfigs;
+    }
+
+    /**
+     * @param array|null $httpConfigs
+     * @return FirebaseOptions
+     */
+    public function setHttpConfigs(?array $httpConfigs): FirebaseOptions
+    {
+        $this->httpConfigs = $httpConfigs;
+        return $this;
+    }
+
+    /**
+     * @return string|null
      */
     public function getServiceAccountId(): ?string
     {
@@ -148,34 +215,40 @@ final class FirebaseOptions
     }
 
     /**
-     * @return int
+     * @param string|null $serviceAccountId
+     * @return FirebaseOptions
      */
-    public function getConnectTimeout(): ?int
+    public function setServiceAccountId(?string $serviceAccountId): FirebaseOptions
     {
-        return $this->connectTimeout;
+        $this->serviceAccountId = $serviceAccountId;
+        return $this;
     }
 
     /**
-     * @return int
+     * @return string|null
      */
-    public function getReadTimeout(): ?int
+    public function getProjectId(): ?string
     {
-        return $this->readTimeout;
+        return $this->projectId;
     }
 
     /**
-     * @return ClientInterface
+     * @param string|null $projectId
+     * @return FirebaseOptions
      */
-    public function getHttpClient(): ?ClientInterface
+    public function setProjectId(?string $projectId): FirebaseOptions
     {
-        return $this->httpClient;
+        $this->projectId = $projectId;
+        return $this;
     }
 
-    /**
-     * @return \Google\Auth\Middleware\AuthTokenMiddleware
-     */
-    public static function getApplicationDefaultCredentials()
+    public static function getDefaultApplicationCredentials()
     {
-        return ApplicationDefaultCredentials::getMiddleware(self::FIREBASE_SCOPES);
+        return ApplicationDefaultCredentials::getCredentials(self::FIREBASE_SCOPES);
+    }
+
+    public static function builder()
+    {
+        return new FirebaseOptionsBuilder(null);
     }
 }

@@ -4,12 +4,11 @@ namespace Firebase\Tests;
 
 use Firebase\FirebaseApp;
 use Firebase\FirebaseException;
-use Firebase\FirebaseOptionsBuilder;
+use Firebase\FirebaseOptions;
 use Firebase\ImplFirebaseTrampolines;
-use Firebase\Tests\Testing\ServiceAccount;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Firebase\Tests\Testing\TestUtils;
-use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
 use Google\Auth\CredentialsLoader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
@@ -18,14 +17,14 @@ class FirebaseAppTest extends TestCase
 {
     final private static function OPTIONS()
     {
-        return (new FirebaseOptionsBuilder())
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
+        return FirebaseOptions::builder()
+            ->setCredentials(TestUtils::getCertCredential(MockServiceAccount::EDITOR()))
             ->build();
     }
 
     protected function setUp(): void
     {
-        TestUtils::getApplicationDefaultCredentials();
+        TestUtils::setApplicationDefaultCredentialsEnv();
     }
 
     protected function tearDown(): void
@@ -59,9 +58,8 @@ class FirebaseAppTest extends TestCase
     public function testGetProjectIdFromOptions()
     {
         $dummyProjectId = 'explicit-project-id';
-        $options = (new FirebaseOptionsBuilder(self::OPTIONS()))
-            ->setProjectId($dummyProjectId)
-            ->build();
+        $options = clone self::OPTIONS();
+        $options->setProjectId($dummyProjectId);
         $app = FirebaseApp::initializeApp($options, 'myApp');
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         $this->assertEquals($dummyProjectId, $projectId);
@@ -79,7 +77,7 @@ class FirebaseAppTest extends TestCase
         $variables = ['GCLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT'];
         foreach ($variables as $variable) {
             TestUtils::setEnvironmentVariables([$variable => 'project-id-1']);
-            $options = (new FirebaseOptionsBuilder())
+            $options = FirebaseOptions::builder()
                 ->setCredentials(CredentialsLoader::makeInsecureCredentials())
                 ->build();
             try {
@@ -98,7 +96,7 @@ class FirebaseAppTest extends TestCase
             'GCLOUD_PROJECT' => 'project-id-1',
             'GOOGLE_CLOUD_PROJECT' => 'project-id-2'
         ]);
-        $options = (new FirebaseOptionsBuilder())
+        $options = FirebaseOptions::builder()
             ->setCredentials(CredentialsLoader::makeInsecureCredentials())
             ->build();
         try {
@@ -201,9 +199,8 @@ class FirebaseAppTest extends TestCase
     public function testAppWithAuthVariableOverrides()
     {
         $authVariableOverrides = ['uid' => 'uid1'];
-        $options = (new FirebaseOptionsBuilder(self::getMockCredentialOptions()))
-            ->setDatabaseAuthVariableOverride($authVariableOverrides)
-            ->build();
+        $options = self::OPTIONS()
+            ->setDatabaseAuthVariableOverride($authVariableOverrides);
         $app = FirebaseApp::initializeApp($options, 'testGetAppWithUid');
         $this->assertEquals('uid1', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
         $token = TestOnlyImplFirebaseTrampolines::getToken($app);
@@ -307,7 +304,7 @@ class FirebaseAppTest extends TestCase
     public function testFirebaseConfigStringIgnoresInvalidKey()
     {
         $this->setFirebaseConfigEnvironmentVariable("{"
-            . "\"databaseUareL\": \"https://hipster-chat.firebaseio.mock\","
+            . "\"databaseUrl\": \"https://hipster-chat.firebaseio.mock\","
             . "\"projectId\": \"hipster-chat-mock\""
             . "}");
         $app = FirebaseApp::initializeApp();
@@ -337,12 +334,5 @@ class FirebaseAppTest extends TestCase
         }
         $envs = [FirebaseApp::FIREBASE_CONFIG_ENV_VAR => $configValue];
         TestUtils::setEnvironmentVariables($envs);
-    }
-
-    private static function getMockCredentialOptions()
-    {
-        return (new FirebaseOptionsBuilder())
-            ->setCredentials(ApplicationDefaultCredentials::getCredentials([]))
-            ->build();
     }
 }

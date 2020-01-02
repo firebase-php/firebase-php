@@ -3,53 +3,30 @@
 
 namespace Firebase\Auth;
 
-use Lcobucci\JWT\Signer;
+use FirebaseHash\Hashable;
 
 class UserImportOptionsBuilder
 {
     /**
-     * @var Signer
+     * @var Hashable|null
      */
     private $hash;
 
     /**
-     * @var string
+     * @return Hashable|null
      */
-    private $secretKey;
-
-    /**
-     * @return Signer
-     */
-    public function getHash(): ?Signer
+    public function getHash(): ?Hashable
     {
         return $this->hash;
     }
 
     /**
-     * @param Signer $hash
+     * @param Hashable|null $hash
      * @return UserImportOptionsBuilder
      */
-    public function setHash(?Signer $hash = null): UserImportOptionsBuilder
+    public function setHash(?Hashable $hash): UserImportOptionsBuilder
     {
         $this->hash = $hash;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSecretKey(): ?string
-    {
-        return $this->secretKey;
-    }
-
-    /**
-     * @param string $secretKey
-     * @return UserImportOptionsBuilder
-     */
-    public function setSecretKey(?string $secretKey): UserImportOptionsBuilder
-    {
-        $this->secretKey = $secretKey;
         return $this;
     }
 

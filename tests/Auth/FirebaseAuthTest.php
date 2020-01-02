@@ -7,10 +7,9 @@ use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseToken;
 use Firebase\Auth\FirebaseTokenVerifier;
 use Firebase\Auth\FirebaseTokenVerifierImpl;
-use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
-use Firebase\Tests\Testing\ServiceAccount;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
 use Firebase\Tests\Testing\TestUtils;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +20,7 @@ class FirebaseAuthTest extends TestCase
     private static function FIREBASE_OPTIONS()
     {
         return FirebaseOptions::builder()
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
+            ->setCredentials(TestUtils::getCertCredential(MockServiceAccount::EDITOR()))
             ->build();
     }
 
@@ -72,7 +71,7 @@ class FirebaseAuthTest extends TestCase
     public function testProjectIdNotRequiredAtInitialization()
     {
         $options = FirebaseOptions::builder()
-            ->setCredentials(TestUtils::getCertCredential(ServiceAccount::EDITOR()))
+            ->setCredentials(TestUtils::getCertCredential(MockServiceAccount::EDITOR()))
             ->build();
         $app = FirebaseApp::initializeApp($options, 'testProjectIdRequired');
         self::assertNotNull(FirebaseAuth::getInstance($app));

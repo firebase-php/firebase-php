@@ -1,21 +1,19 @@
 {
-    "name": "tiptopcoder/firebase-php",
+    "name": "firebase-php/firebase-php",
     "description": "Firebase Admin SDK for PHP",
     "type": "library",
     "require": {
         "php": ">= 7.2.0",
+        "ext-openssl": "*",
+        "ext-json": "*",
         "guzzlehttp/guzzle": "^6.5",
         "lcobucci/jwt": "^3.3",
-        "ext-json": "*",
         "myclabs/php-enum": "^1.7",
         "guzzlehttp/promises": "^1.3",
         "nesbot/carbon": "^2.27",
-        "google/apiclient": "^2.0",
         "symfony/validator": "^5.0",
-        "grpc/grpc": "^v1.1.0",
-        "google/cloud-firestore": "^1.10",
-        "ext-openssl": "*",
-        "google/auth": "^1.6"
+        "firebase-php/google-auth": "^2.0",
+        "firebase-php/firebase-hash": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.5",

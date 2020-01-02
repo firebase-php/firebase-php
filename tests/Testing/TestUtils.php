@@ -3,10 +3,10 @@
 
 namespace Firebase\Tests\Testing;
 
-use Firebase\Auth\GoogleAuthLibrary\CredentialsLoader;
+use Google\Auth\CredentialsLoader;
 use Firebase\FirebaseOptions;
 use Firebase\Util\Validator\Validator;
-use Firebase\Auth\GoogleAuthLibrary\ApplicationDefaultCredentials;
+use Google\Auth\ApplicationDefaultCredentials;
 use Google\Auth\HttpHandler\HttpHandlerFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -57,15 +57,15 @@ class TestUtils
     }
 
     /**
-     * @param ServiceAccount|array $serviceAccount
-     * @return \Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\UserRefreshCredentials
+     * @param $serviceAccount
+     * @return \Google\Auth\Credentials\ServiceAccountCredentials|\Google\Auth\Credentials\UserRefreshCredentials
      */
     public static function getCertCredential($serviceAccount)
     {
         if (is_array($serviceAccount)) {
             return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount);
         }
-        return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount->asArray());
+        return CredentialsLoader::makeCredentials(FirebaseOptions::FIREBASE_SCOPES, $serviceAccount->jsonSerialize());
     }
 
     /**
@@ -79,16 +79,24 @@ class TestUtils
         return $fileContents;
     }
 
-    public static function getApplicationDefaultCredentials()
+    public static function getApplicationDefaultCredentials(string $serviceAccountFile = 'editor.json')
     {
         if (!is_null(self::$defaultCredentials)) {
             return self::$defaultCredentials;
         }
-        $serviceAccountPath = realpath(__DIR__ . '/../fixtures/service_accounts/editor.json');
+        $serviceAccountPath = realpath(__DIR__ . '/../fixtures/service_accounts/' . $serviceAccountFile);
         self::setEnvironmentVariables([
             'GOOGLE_APPLICATION_CREDENTIALS' => $serviceAccountPath
         ]);
         return ApplicationDefaultCredentials::getCredentials(null, self::getMockHandler());
+    }
+
+    public static function setApplicationDefaultCredentialsEnv(string $serviceAccountFile = 'editor.json')
+    {
+        $serviceAccountPath = realpath(__DIR__ . '/../fixtures/service_accounts/' . $serviceAccountFile);
+        self::setEnvironmentVariables([
+            'GOOGLE_APPLICATION_CREDENTIALS' => $serviceAccountPath
+        ]);
     }
 
     public static function getMockHandler()

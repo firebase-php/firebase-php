@@ -3,13 +3,10 @@
 
 namespace Firebase\Auth;
 
-use Firebase\Auth\Internal\CryptoSigners;
 use Firebase\Auth\Internal\FirebaseTokenFactory;
 use Firebase\Auth\Internal\GooglePublicKeysManagerBuilder;
 use Firebase\Auth\Internal\IdTokenVerifier;
-use Firebase\Auth\Internal\IdTokenVerifierBuilder;
 use Firebase\FirebaseApp;
-use Firebase\FirebaseOptions;
 use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
 
@@ -25,7 +22,7 @@ final class FirebaseTokenUtils
 
     public static function createTokenFactory(FirebaseApp $app)
     {
-        return new FirebaseTokenFactory(CryptoSigners::getCryptoSigner($app));
+        return new FirebaseTokenFactory($app->getOptions()->getCredentials());
     }
 
     public static function createIdTokenVerifier(FirebaseApp $app)

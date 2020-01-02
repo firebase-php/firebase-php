@@ -227,11 +227,11 @@ class ImportUserRecordBuilder
         }
 
         if (!is_null($this->passwordHash)) {
-            $properties['passwordHash'] = base64_encode($this->passwordHash);
+            $properties['passwordHash'] = $this->passwordHash;
         }
 
         if (!is_null($this->passwordSalt)) {
-            $properties['salt'] = base64_encode($this->passwordSalt);
+            $properties['salt'] = $this->passwordSalt;
         }
 
         if (count($this->userProviders) > 0) {

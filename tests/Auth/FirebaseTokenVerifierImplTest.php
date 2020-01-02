@@ -7,13 +7,11 @@ use Carbon\CarbonInterval;
 use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseTokenVerifier;
 use Firebase\Auth\FirebaseTokenVerifierImpl;
-use Firebase\Auth\FirebaseTokenVerifierImplBuilder;
 use Firebase\Auth\Internal\GooglePublicKeysManager;
 use Firebase\Auth\Internal\GooglePublicKeysManagerBuilder;
 use Firebase\Auth\Internal\IdTokenVerifier;
-use Firebase\Auth\Internal\IdTokenVerifierBuilder;
 use Firebase\Tests\Testing\IncorrectAlgorithmSigner;
-use Firebase\Tests\Testing\ServiceAccount;
+use Firebase\Tests\Testing\MockServiceAccount;
 use Firebase\Tests\Testing\TestTokenFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -51,7 +49,7 @@ class FirebaseTokenVerifierImplTest extends TestCase
 
     protected function setUp(): void
     {
-        $serviceAccount = ServiceAccount::EDITOR();
+        $serviceAccount = MockServiceAccount::EDITOR();
         $pubKeysManager = $this->newPublicKeysManager($serviceAccount->getCert());
         $this->tokenVerifier = $this->newTestTokenVerifier($pubKeysManager);
         $this->tokenFactory = new TestTokenFactory($serviceAccount->getPrivateKey(), self::TEST_TOKEN_ISSUER);
@@ -98,15 +96,14 @@ class FirebaseTokenVerifierImplTest extends TestCase
      *
      * @see Builder::relatedTo()
      */
-    public function testVerifyTokenMissingSubject()
+    public function testVerifyTokenNullSubject()
     {
-        $this->markTestSkipped('This test may never happen because $sub will be type cast to string.');
         $token = $this->createTokenWithSubject(null);
-        $this->expectExceptionMessageMatches('/^Firebase test token has no "sub" \\(subject\\) claim\\./');
+        $this->expectExceptionMessageMatches('/^Firebase test token has an empty string "sub" \\(subject\\) claim\\./');
         $this->tokenVerifier->verifyToken($token);
     }
 
-    public function testVerifyTokenEmptySubject()
+    public function testVerifyTokenEmptyStringSubject()
     {
         $token = $this->createTokenWithSubject('');
         $this->expectExceptionMessageMatches('/^Firebase test token has an empty string "sub" \\(subject\\) claim\\./');
@@ -145,7 +142,7 @@ class FirebaseTokenVerifierImplTest extends TestCase
     public function testVerifyTokenIncorrectCert()
     {
         $token = $this->tokenFactory->createToken();
-        $publicKeysManager = $this->newPublicKeysManager(ServiceAccount::NONE()->getCert());
+        $publicKeysManager = $this->newPublicKeysManager(MockServiceAccount::NONE()->getCert());
         $tokenVerifier = $this->newTestTokenVerifier($publicKeysManager);
         $this->expectExceptionMessageMatches('/^Failed to verify the signature of Firebase test token\\. See https:\\/\\/test\\.doc\\.url for details on how to retrieve a test token\\./');
         $tokenVerifier->verifyToken($token);
@@ -237,7 +234,7 @@ class FirebaseTokenVerifierImplTest extends TestCase
             ->setShortName('test token')
             ->setMethod('verifyTestToken()')
             ->setDocUrl('https://test.doc.url')
-            ->setPublicKeysManager($this->newPublicKeysManager(ServiceAccount::EDITOR()->getCert()))
+            ->setPublicKeysManager($this->newPublicKeysManager(MockServiceAccount::EDITOR()->getCert()))
             ->setIdTokenVerifier($this->newIdTokenVerifier());
     }
 

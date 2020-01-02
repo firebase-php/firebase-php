@@ -5,7 +5,7 @@ namespace Firebase\Tests\Testing;
 
 use Firebase\FirebaseApp;
 use Firebase\FirebaseOptions;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
+use Google\Auth\Credentials\ServiceAccountCredentials;
 
 final class TestOnlyImplFirebaseTrampolines
 {

@@ -2,11 +2,10 @@
 
 namespace Firebase\Tests\Auth\Internal;
 
-use Firebase\Auth\FirebaseToken;
-use Firebase\Auth\Internal\CryptoSigner;
 use Firebase\Auth\Internal\FirebaseTokenFactory;
 use Firebase\Tests\Testing\TestUtils;
 use Google\Auth\ServiceAccountSignerTrait;
+use Google\Auth\SignBlobInterface;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use PHPUnit\Framework\TestCase;
@@ -60,11 +59,11 @@ class FirebaseTokenFactoryTest extends TestCase
 
     /**
      * @param resource $privateKey
-     * @return CryptoSigner
+     * @return SignBlobInterface
      */
     private static function TestCryptoSigner($privateKey)
     {
-        return new class(self::ISSUER, $privateKey) implements CryptoSigner {
+        return new class(self::ISSUER, $privateKey) implements SignBlobInterface {
             use ServiceAccountSignerTrait;
             /**
              * @var string
@@ -82,15 +81,30 @@ class FirebaseTokenFactoryTest extends TestCase
                 $this->privateKey = $privateKey;
             }
 
-            public function sign(string $content)
+            public function signBlob($content, $forceOpenSsl = false)
             {
                 openssl_sign($content, $binaryString, $this->privateKey, 'sha256WithRSAEncryption');
                 return base64_encode($binaryString);
             }
 
-            public function getAccount(): string
+            public function getClientName(callable $httpHandler = null): string
             {
                 return $this->issuer;
+            }
+
+            public function fetchAuthToken(callable $httpHandler = null)
+            {
+                return null;
+            }
+
+            public function getCacheKey()
+            {
+                return null;
+            }
+
+            public function getLastReceivedToken()
+            {
+                return null;
             }
         };
     }

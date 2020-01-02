@@ -5,7 +5,7 @@ namespace Firebase\Auth\UserRecord;
 
 use Firebase\Util\Validator\Validator;
 
-abstract class UserRecordRequest
+trait UserRecordRequest
 {
     protected $properties = [];
 

@@ -2,33 +2,25 @@
 
 namespace Firebase\Tests\Auth;
 
-use Carbon\Carbon;
 use Carbon\CarbonInterval;
-use Faker\Factory;
 use Faker\Provider\Base;
 use Firebase\Auth\ActionCodeSettings;
 use Firebase\Auth\FirebaseAuth;
 use Firebase\Auth\FirebaseAuthException;
 use Firebase\Auth\FirebaseUserManager;
 use Firebase\Auth\ImportUserRecord;
-use Firebase\Auth\Internal\DownloadAccountResponse;
 use Firebase\Auth\RevocationCheckDecorator;
 use Firebase\Auth\SessionCookieOptions;
 use Firebase\Auth\UserImportOptions;
 use Firebase\Auth\UserInfo;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
-use Firebase\FirebaseOptionsBuilder;
-use Firebase\ImplFirebaseTrampolines;
 use Firebase\Tests\Testing\IntegrationTestUtils;
 use Firebase\Tests\Testing\RandomUser;
-use Firebase\Tests\Testing\TestOnlyImplFirebaseTrampolines;
+use FirebaseHash\Scrypt;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
-use Lcobucci\JWT\Signer\Rsa\Sha256;
-use MongoDB\Driver\Session;
-use phpseclib\Crypt\Random;
 use PHPUnit\Framework\TestCase;
 
 class FirebaseAuthIT extends TestCase
@@ -37,10 +29,10 @@ class FirebaseAuthIT extends TestCase
         'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken';
 
     private const VERIFY_PASSWORD_URL =
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword';
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
 
     private const RESET_PASSWORD_URL =
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword';
+        'https://identitytoolkit.googleapis.com/v1/accounts:resetPassword';
 
     private const EMAIL_LINK_SIGN_IN_URL =
         'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSignin';
@@ -375,7 +367,40 @@ class FirebaseAuthIT extends TestCase
 
     public function testImportUsersWithPassword()
     {
-        self::markTestIncomplete('Need enum of password algorithm from firebase');
+        $passwordHash = getenv('TESTING_PASSWORD_HASH');
+        $scryptKey = getenv('TESTING_SCRYPT_KEY');
+        $randomUser = RandomUser::create();
+        $user = ImportUserRecord::builder()
+            ->setUid($randomUser->getUid())
+            ->setEmail($randomUser->getEmail())
+            ->setPasswordHash($passwordHash)
+            ->setPasswordSalt(base64_encode('fish_sauce'))
+            ->build();
+
+        $saltSeparator = 'Bw==';
+
+        $result = self::$auth->importUsers(
+            [$user],
+            UserImportOptions::withHash(
+                Scrypt::builder()
+                ->setKey($scryptKey)
+                ->setSaltSeparator($saltSeparator)
+                ->setRounds(8)
+                ->setMemoryCost(14)
+                ->build()
+            )
+        );
+        self::assertEquals(1, $result->getSuccessCount());
+        self::assertEquals(0, $result->getFailureCount());
+
+        try {
+            $savedUser = self::$auth->getUser($randomUser->getUid());
+            self::assertEquals($randomUser->getEmail(), $savedUser->getEmail());
+            $idToken = $this->signInWithPassword($randomUser->getEmail(), 'password');
+            self::assertFalse(empty($idToken));
+        } finally {
+            self::$auth->deleteUser($randomUser->getUid());
+        }
     }
 
     public function testGeneratePasswordResetLink()
@@ -399,7 +424,6 @@ class FirebaseAuthIT extends TestCase
         self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
         $email = $this->resetPassword(
             $user->getEmail(),
-            'password',
             'newPassword',
             $linkParams['oobCode']
         );
@@ -456,6 +480,25 @@ class FirebaseAuthIT extends TestCase
         self::$auth->deleteUser($user->getUid());
     }
 
+    private function signInWithPassword(string $email, string $password)
+    {
+        $url = self::VERIFY_PASSWORD_URL . '?key=' . IntegrationTestUtils::getApiKey();
+        $content = [
+            'email' => $email,
+            'password' => $password,
+            'returnSecureToken' => true
+        ];
+        $request = new Request(
+            'POST',
+            $url,
+            [],
+            json_encode($content)
+        );
+        $response = (new Client())->send($request);
+        $json = json_decode($response->getBody(), true);
+        return $json['idToken'];
+    }
+
     private function signInWithEmailLink(string $email, string $oobCode)
     {
         $url = self::EMAIL_LINK_SIGN_IN_URL . '?key=' . IntegrationTestUtils::getApiKey();
@@ -490,14 +533,12 @@ class FirebaseAuthIT extends TestCase
 
     private function resetPassword(
         string $email,
-        string $oldPassword,
         string $newPassword,
         string $oobCode
     ) {
         $url = self::RESET_PASSWORD_URL . '?key=' . IntegrationTestUtils::getApiKey();
         $content = [
             'email' => $email,
-            'oldPassword' => $oldPassword,
             'newPassword' => $newPassword,
             'oobCode' => $oobCode
         ];

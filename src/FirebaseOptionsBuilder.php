@@ -4,7 +4,9 @@
 namespace Firebase;
 
 use Firebase\Util\Validator\Validator;
-use Firebase\Auth\GoogleAuthLibrary\Credentials\ServiceAccountCredentials;
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use Google\Auth\CredentialsLoader;
+use Google\Auth\SignBlobInterface;
 use GuzzleHttp\ClientInterface;
 
 class FirebaseOptionsBuilder
@@ -35,27 +37,21 @@ class FirebaseOptionsBuilder
     private $serviceAccountId;
 
     /**
-     * @var ServiceAccountCredentials|mixed
+     * @var ServiceAccountCredentials|CredentialsLoader|SignBlobInterface|mixed
      */
     private $credentials;
 
     /**
-     * @var int
+     * @var array|null
      */
-    private $connectTimeout;
+    private $httpMiddlewares;
 
     /**
-     * @var int
+     * @var array|null
      */
-    private $readTimeout;
+    private $httpConfigs;
 
-    /**
-     * @var ClientInterface
-     */
-    private $httpClient;
-
-
-    public function __construct(FirebaseOptions $options = null)
+    public function __construct(?FirebaseOptions $options = null)
     {
         if (is_null($options)) {
             return;
@@ -65,8 +61,8 @@ class FirebaseOptionsBuilder
         $this->credentials = $options->getCredentials();
         $this->databaseAuthVariableOverride = $options->getDatabaseAuthVariableOverride();
         $this->projectId = $options->getProjectId();
-        $this->connectTimeout = $options->getConnectTimeout();
-        $this->readTimeout = $options->getReadTimeout();
+        $this->httpConfigs = $options->getHttpConfigs();
+        $this->httpMiddlewares = $options->getHttpMiddlewares();
     }
 
     /**
@@ -182,56 +178,38 @@ class FirebaseOptionsBuilder
     }
 
     /**
-     * @return int
+     * @return array|null
      */
-    public function getConnectTimeout(): ?int
+    public function getHttpMiddlewares(): ?array
     {
-        return $this->connectTimeout;
+        return $this->httpMiddlewares;
     }
 
     /**
-     * @param int $connectTimeout
+     * @param array|null $httpMiddlewares
      * @return FirebaseOptionsBuilder
      */
-    public function setConnectTimeout(int $connectTimeout): FirebaseOptionsBuilder
+    public function setHttpMiddlewares(?array $httpMiddlewares): FirebaseOptionsBuilder
     {
-        $this->connectTimeout = $connectTimeout;
+        $this->httpMiddlewares = $httpMiddlewares;
         return $this;
     }
 
     /**
-     * @return int
+     * @return array|null
      */
-    public function getReadTimeout(): ?int
+    public function getHttpConfigs(): ?array
     {
-        return $this->readTimeout;
+        return $this->httpConfigs;
     }
 
     /**
-     * @param int $readTimeout
+     * @param array|null $httpConfigs
      * @return FirebaseOptionsBuilder
      */
-    public function setReadTimeout(int $readTimeout): FirebaseOptionsBuilder
+    public function setHttpConfigs(?array $httpConfigs): FirebaseOptionsBuilder
     {
-        $this->readTimeout = $readTimeout;
-        return $this;
-    }
-
-    /**
-     * @return ClientInterface
-     */
-    public function getHttpClient(): ?ClientInterface
-    {
-        return $this->httpClient;
-    }
-
-    /**
-     * @param ClientInterface $httpClient
-     * @return FirebaseOptionsBuilder
-     */
-    public function setHttpClient(ClientInterface $httpClient): FirebaseOptionsBuilder
-    {
-        $this->httpClient = $httpClient;
+        $this->httpConfigs = $httpConfigs;
         return $this;
     }
 

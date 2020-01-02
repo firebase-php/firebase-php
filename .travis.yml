@@ -9,15 +9,13 @@ stages:
 - test
 - report
 before_install:
-- openssl aes-256-cbc -K $encrypted_589568f37856_key -iv $encrypted_589568f37856_iv -in secrets.tar.enc -out secrets.tar -d
+- openssl aes-256-cbc -K $encrypted_589568f37856_key -iv $encrypted_589568f37856_iv
+  -in secrets.tar.enc -out secrets.tar -d
 - tar xvf secrets.tar -C tests/fixtures
-- pecl install grpc
 install:
 - composer update --no-progress --no-interaction --no-suggest
-
 script:
-  - vendor/bin/phpunit --testsuite=unit
-
+- vendor/bin/phpunit --testsuite=unit
 jobs:
   include:
   - stage: lint
@@ -55,9 +53,9 @@ jobs:
       - develop
     addons:
       sonarcloud:
-        organization: tiptopcoder
+        organization: firebase-php
         token:
-          secure: adAtt04c5Bl67LIR7MeEMOdtJB3lGE5DHeIULJclLqtMwxeVoj/3wq+RySG2mtHGShX2ajiQzE08mKpyGrC/wlPHVog23OIEco7H6g7MdjNtRoZPXs9SSHBlJAfXjGCZBXFD7QGhNALAR4BQKs4gCTSznUcBP1nl47QWk5KzheV/UdeV9tNe/NHOEXexEA0QYEp28+8K1MpckouH0qLSL33fVDqMnzv8h9EP2oSr6gBpVsqaYMjS05D2S7cz7uQJD0v8gvDXFU9VCK3yzQ6aJWcuawXX9Xcq0/uuV+duDwFZ1mtpb7JP7s2TRO4PR0qnN93qafuePx3LE9MZUEffGBcV8mKtHGQk8RB28QTY5/lhw3RLshZ6WBU0M7JMZCiqvGPc4xjzL/TroNUSpwUUFE0xs8tQDrm0mg7WfuZx/eeegvJlk3cRd5irbpRqCfRRvf6PFR5dvZp3reldIhIKfJquYZv+l+9POHyhq9A3fPfWw94RBpXntNfjcildwxplO+SLL/e/mLP295tEUCYOgGcgzRQARiiNxYMflRw4M4UdJQmig6c77PboKpQuCFJeaUNYTe3zUD9eR28nmPGCeF7uMG5TaeS42K64h9pHs36mf02q05psV/iJERRGVZZYr5JOyKcP3/6wxoTdPyB1swFFcVaGilMBQC3BbsJw/fs=
+          secure: gtpBZqCxv8HDFkrlWjHJyRXYzlBKu5RZC1AWqBd3uoWFktMqLya3ItcN/TZlPEiCaskxeitPThhp/204o9fSg5ZQGnJ4djGAGB6ohEiVWwMx/YPHxHmJ+jdRIkknkcdklFRdPwYka9td69UA5y96OzsLr7D4AOyVIaHFju3D5HRqcwUnQo2BDu+3xyh+UQDRIQb9PVuxQmrF2Thi2DQ81r3OS5+SOrwJmUCXBBUABxNwp/09J047yXJ6B0xnpMxPkS9jg2pF00dS1L7212L1iG0zQAScNq2ckiAucQX+192FinqhEVYHadrXe2OjbA4K2hmlTH5qRzk4gAIi4Lyc+5TQcDwmqEcwj+CUYdP1WK4EYGK4EcArmwfveK8KfW8lQvff/9jnYDpvMz8HUqwzQyUzQ52EuGIKClTsRz56awP/XGpkMHYpfsCLHjN+c5QUjE4lSZAdPg4lC9Q21YnzlI8EvF1Rc+IZ0ZrzMrCJZZ5/Ha0Z2nfaqt/6EbA9wpuSY+JnZn6QaJA9kts9OuhfV6MaXO51s3LEkX0JO1ZRMY3Nl+zGx8ATiYEL/uFYXdYylhMQxhtGVRN16AJK3+iWODZgzLzuYXRKZaAYk5EYxFoManKmJTKihbLrahDruALx5QDPntSnTLaYaasBIGqx1MRRTCYi9LAYIogb8QNoWoo=
 cache:
   directories:
   - vendor

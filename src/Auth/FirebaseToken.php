@@ -18,7 +18,6 @@ final class FirebaseToken
      */
     public function __construct(?array $claims = null)
     {
-        // TODO: allow JWT Token as claims parameter
         Validator::checkArgument(is_array($claims) && isset($claims['sub']), 'Claims map must at least contain sub');
         $this->claims = array_replace([], $claims);
     }

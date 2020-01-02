@@ -3,7 +3,7 @@
 namespace Firebase\Tests\Auth;
 
 use Firebase\Auth\UserImportOptions;
-use Lcobucci\JWT\Signer\Hmac\Sha512;
+use FirebaseHash\HmacSha512;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Exception\InvalidArgumentException;
 
@@ -17,14 +17,15 @@ class UserImportOptionsTest extends TestCase
 
     public function testHash()
     {
-        $hash = new Sha512();
+        $hash = HmacSha512::builder()
+            ->setKey('key')
+            ->build();
         $options = UserImportOptions::builder()
             ->setHash($hash)
-            ->setSecretKey('secret')
             ->build();
         $expected = [
-            'hashAlgorithm' => 'HS512',
-            'signerKey' => base64_encode('secret')
+            'hashAlgorithm' => 'HMAC_SHA512',
+            'signerKey' => 'key'
         ];
         $this->assertEquals($expected, $options->getProperties());
         $this->assertSame($hash, $options->getHash());

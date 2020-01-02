@@ -4,32 +4,24 @@
 namespace Firebase\Auth;
 
 use Firebase\Util\Validator\Validator;
-use Lcobucci\JWT\Signer;
+use FirebaseHash\Hashable;
 
 final class UserImportOptions
 {
     /**
-     * @var Signer
+     * @var Hashable
      */
     private $hash;
 
-    /**
-     * @var string
-     */
-    private $secretKey;
-
     public function __construct(UserImportOptionsBuilder $builder)
     {
-        Validator::isNonNullObject($builder->getHash());
-        $this->hash = $builder->getHash();
-        $this->secretKey = $builder->getSecretKey();
+        $this->hash = Validator::isNonNullObject($builder->getHash());
     }
 
-    public static function withHash(Signer $hash, string $secretKey)
+    public static function withHash(Hashable $hash)
     {
         return self::builder()
             ->setHash($hash)
-            ->setSecretKey($secretKey)
             ->build();
     }
 
@@ -39,26 +31,18 @@ final class UserImportOptions
     }
 
     /**
-     * @return Signer
+     * @return Hashable
      */
-    public function getHash(): ?Signer
+    public function getHash(): Hashable
     {
         return $this->hash;
     }
 
-    /**
-     * @return string
-     */
-    public function getSecretKey(): string
-    {
-        return $this->secretKey;
-    }
-
     public function getProperties()
     {
-        return [
-            'hashAlgorithm' => $this->hash->getAlgorithmId(),
-            'signerKey' => base64_encode($this->secretKey)
-        ];
+        $properties = $this->hash->getOptions();
+        return array_merge($properties, [
+            'hashAlgorithm' => $this->hash->getName()
+        ]);
     }
 }

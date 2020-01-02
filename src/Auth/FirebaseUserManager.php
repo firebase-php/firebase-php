@@ -12,7 +12,7 @@ use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
-use GuzzleHttp\Client;
+use Google\Auth\CredentialsLoader;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
@@ -49,13 +49,7 @@ class FirebaseUserManager
 
     const MAX_IMPORT_USERS = 1000;
 
-    const FIREBASE_AUTH_HEADERS = [
-//        self::CLIENT_VESION_HEADER => 'Java/Admin/<XXX_SDK_VERSION_XXX>' // TODO: Test what happened if no version header
-    ];
-
     private const ID_TOOLKIT_URL = 'https://identitytoolkit.googleapis.com/v1/projects/%s';
-
-    private const CLIENT_VESION_HEADER = 'X-Client-Version';
 
     private $baseUrl;
 
@@ -70,7 +64,7 @@ class FirebaseUserManager
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         Validator::isNonEmptyString($projectId, 'Project ID is required to access the auth service. Use a service account credential or set the project ID explicitly via FirebaseOptions. Alternatively you can also set the project ID via the GOOGLE_CLOUD_PROJECT environment variable.');
         $this->baseUrl = sprintf(self::ID_TOOLKIT_URL, $projectId);
-        $this->httpClient = new Client();
+        $this->httpClient = CredentialsLoader::makeHttpClient($this->app->getOptions()->getCredentials());
     }
 
     public function getUserById(string $uid): UserRecord
@@ -279,8 +273,6 @@ class FirebaseUserManager
         Validator::isNonEmptyString($method, 'Method must not be null or empty');
         Validator::isNonEmptyString($path, 'URL path must not be null or empty');
         try {
-            // TODO: avoid throttle of fetching access token
-            $authToken = $this->app->getOptions()->getCredentials()->fetchAuthToken();
             $body = null;
             $query = '';
             $uri = new Uri($this->baseUrl . $path);
@@ -292,17 +284,11 @@ class FirebaseUserManager
             $request = new Request(
                 $method,
                 $uri->withQuery($query),
-                array_merge(
-                    self::FIREBASE_AUTH_HEADERS,
-                    [
-                        'Authorization' => 'Bearer ' . $authToken['access_token']
-                    ]
-                ),
+                [],
                 $body
             );
             $response = $this->httpClient->send($request, $requestOptions);
-            $body = json_decode($response->getBody(), true);
-            return $body;
+            return json_decode($response->getBody(), true);
         } catch (ClientException $e) {
             $this->handleHttpError($e);
             return null;

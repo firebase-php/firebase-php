@@ -7,8 +7,10 @@ use Firebase\Auth\Internal\GetAccountInfoResponse\User;
 use Firebase\Auth\UserRecord;
 use Firebase\Util\Validator\Validator;
 
-final class UpdateRequest extends UserRecordRequest
+final class UpdateRequest
 {
+    use UserRecordRequest;
+
     public function __construct(string $uid)
     {
         Validator::isUid($uid);

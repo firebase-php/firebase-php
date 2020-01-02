@@ -194,11 +194,6 @@ final class FirebaseTokenVerifierImpl implements FirebaseTokenVerifier
                 $idToken->getClaim('iss'),
                 $this->getProjectIdMatchMessage()
             );
-        } elseif (!is_string($idToken->getClaim('sub'))) {
-            $errorMessage = sprintf(
-                'Firebase %s has no "sub (subject) claim.',
-                $this->shortName
-            );
         } elseif (empty($idToken->getClaim('sub'))) {
             $errorMessage = sprintf(
                 'Firebase %s has an empty string "sub" (subject) claim.',

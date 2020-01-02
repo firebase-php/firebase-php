@@ -7,7 +7,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Token;
 use MyCLabs\Enum\Enum;
 
-class ServiceAccount
+class MockServiceAccount implements \JsonSerializable
 {
     private $json;
 
@@ -21,7 +21,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/owner_public_key.pem');
         $email = 'mock-project-id-owner@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function EDITOR()
@@ -30,7 +30,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/editor_public_key.pem');
         $email = 'mock-project-id-editor@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function VIEWER()
@@ -39,7 +39,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/viewer_public_key.pem');
         $email = 'mock-project-id-viewer@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public static function NONE()
@@ -48,7 +48,7 @@ class ServiceAccount
         $cert = TestUtils::loadResource('/service_accounts/none_public_key.pem');
         $email = 'mock-project-id-none@mock-project-id.iam.gserviceaccount.com';
 
-        return new ServiceAccount($email, $json, $cert);
+        return new MockServiceAccount($email, $json, $cert);
     }
 
     public function __construct(string $email, string $json, string $cert)
@@ -60,27 +60,15 @@ class ServiceAccount
 
     public function getPrivateKey()
     {
-//        $beginMark = "-----BEGIN PRIVATE KEY-----\\n";
-//        $endMark = "-----END PRIVATE KEY-----\\n";
-//        $substr = substr(
-//            $this->json,
-//            strpos($this->json, $beginMark) + strlen($beginMark),
-//            strpos($this->json, $endMark)
-//        );
-//
-//        return str_replace("\\n", '', $substr);
         return json_decode($this->json, true)['private_key'];
     }
 
-    /**
-     * @return string
-     */
-    public function asString(): string
+    public function __toString(): string
     {
         return $this->json;
     }
 
-    public function asArray()
+    public function jsonSerialize()
     {
         return json_decode($this->json, true);
     }
