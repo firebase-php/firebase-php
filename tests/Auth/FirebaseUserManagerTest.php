@@ -173,6 +173,26 @@ class FirebaseUserManagerTest extends TestCase
         self::assertEquals('', $page->getNextPageToken());
     }
 
+    public function testCreateUser()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/createUser.json')),
+            new Response(200, [], TestUtils::loadResource('/getUser.json')),
+        ]);
+        $user = FirebaseAuth::getInstance()->createUser(new UserRecord\CreateRequest());
+        self::checkUserRecord($user);
+    }
+
+    public function testUpdateUser()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/createUser.json')),
+            new Response(200, [], TestUtils::loadResource('/getUser.json')),
+        ]);
+        $user = FirebaseAuth::getInstance()->updateUser(new UserRecord\UpdateRequest('testuser'));
+        self::checkUserRecord($user);
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
