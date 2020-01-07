@@ -853,6 +853,146 @@ class FirebaseUserManagerTest extends TestCase
         self::assertTrue(true);
     }
 
+    public function testGeneratePasswordResetLinkNoEmail()
+    {
+        self::initializeAppForUserManagement();
+        try {
+            FirebaseAuth::getInstance()->generatePasswordResetLink(null);
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+        }
+
+        try {
+            FirebaseAuth::getInstance()->generatePasswordResetLink('');
+            self::fail('No error thrown for empty email');
+        } catch (InvalidArgumentException $e) {
+        }
+        self::assertTrue(true);
+    }
+
+    public function testGeneratePasswordResetLinkWithSettings()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/generateEmailLink.json'))
+        ]);
+        $link = FirebaseAuth::getInstance()->generatePasswordResetLink('test@example.com', self::ACTION_CODE_SETTINGS());
+        self::assertEquals('https://mock-oob-link.for.auth.tests', $link);
+    }
+
+    public function testGeneratePasswordResetLink()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/generateEmailLink.json'))
+        ]);
+        $link = FirebaseAuth::getInstance()->generatePasswordResetLink('test@example.com');
+        self::assertEquals('https://mock-oob-link.for.auth.tests', $link);
+    }
+
+    public function testGenerateEmailVerificationLinkNoEmail()
+    {
+        self::initializeAppForUserManagement();
+        try {
+            FirebaseAuth::getInstance()->generateEmailVerificationLink(null);
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+        }
+
+        try {
+            FirebaseAuth::getInstance()->generateEmailVerificationLink('');
+            self::fail('No error thrown for empty email');
+        } catch (InvalidArgumentException $e) {
+        }
+        self::assertTrue(true);
+    }
+
+    public function testGenerateEmailVerificationLinkWithSettings()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/generateEmailLink.json'))
+        ]);
+        $link = FirebaseAuth::getInstance()->generateEmailVerificationLink('test@example.com', self::ACTION_CODE_SETTINGS());
+        self::assertEquals('https://mock-oob-link.for.auth.tests', $link);
+    }
+
+    public function testGenerateEmailVerificationLink()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/generateEmailLink.json'))
+        ]);
+        $link = FirebaseAuth::getInstance()->generateEmailVerificationLink('test@example.com');
+        self::assertEquals('https://mock-oob-link.for.auth.tests', $link);
+    }
+
+    public function testGenerateSignInWithEmailLinkNoEmail()
+    {
+        self::initializeAppForUserManagement();
+        try {
+            FirebaseAuth::getInstance()->generateSignInWithEmailLink(null, self::ACTION_CODE_SETTINGS());
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+        }
+
+        try {
+            FirebaseAuth::getInstance()->generateSignInWithEmailLink('', self::ACTION_CODE_SETTINGS());
+            self::fail('No error thrown for empty email');
+        } catch (InvalidArgumentException $e) {
+        }
+        self::assertTrue(true);
+    }
+
+    public function testGenerateSignInWithEmailLinkNullSettings()
+    {
+        self::initializeAppForUserManagement();
+        try {
+            FirebaseAuth::getInstance()
+                ->generateSignInWithEmailLink('test@example.com', null);
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+        }
+        self::assertTrue(true);
+    }
+
+    public function testGenerateSignInWithEmailLinkWithSettings()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/generateEmailLink.json'))
+        ]);
+        $link = FirebaseAuth::getInstance()->generateSignInWithEmailLink('test@example.com', self::ACTION_CODE_SETTINGS());
+        self::assertEquals('https://mock-oob-link.for.auth.tests', $link);
+    }
+
+    public function testHttpErrorWithCode()
+    {
+        self::initializeAppForUserManagement([
+            new Response(500, [], '{"error": {"message": "UNAUTHORIZED_DOMAIN"}}')
+        ]);
+        $auth = FirebaseAuth::getInstance();
+        $userManager = $auth->getUserManager();
+        try {
+            $userManager->getEmailActionLink(EmailLinkType::PASSWORD_RESET(), 'test@example.com', null);
+            self::fail('No exception thrown for HTTP error');
+        } catch (FirebaseAuthException $e) {
+            self::assertEquals('unauthorized-continue-uri', $e->getCode());
+            self::assertTrue($e->getPrevious() instanceof BadResponseException);
+        }
+    }
+
+    public function testUnexpectedHttpError()
+    {
+        self::initializeAppForUserManagement([
+            new Response(500, [], '{}')
+        ]);
+        $auth = FirebaseAuth::getInstance();
+        $userManager = $auth->getUserManager();
+        try {
+            $userManager->getEmailActionLink(EmailLinkType::PASSWORD_RESET(), 'test@example.com', null);
+            self::fail('No exception thrown for HTTP error');
+        } catch (FirebaseAuthException $e) {
+            self::assertEquals('internal-error', $e->getCode());
+            self::assertTrue($e->getPrevious() instanceof BadResponseException);
+        }
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
