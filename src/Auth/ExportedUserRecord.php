@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\Internal\DownloadAccountResponse\User;
 
 class ExportedUserRecord extends UserRecord

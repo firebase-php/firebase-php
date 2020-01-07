@@ -201,8 +201,7 @@ class FirebaseUserManager
     public function createSessionCookie(
         string $idToken = null,
         SessionCookieOptions $options = null
-    )
-    {
+    ) {
         $payload = [
             'idToken' => $idToken,
             'validDuration' => $options->getExpiresInSeconds()
@@ -222,8 +221,7 @@ class FirebaseUserManager
         EmailLinkType $type,
         string $email,
         ?ActionCodeSettings $settings
-    )
-    {
+    ) {
         $payload = [
             'requestType' => $type,
             'email' => $email,
@@ -264,8 +262,7 @@ class FirebaseUserManager
         string $path,
         array $content,
         array $requestOptions = []
-    )
-    {
+    ) {
         Validator::isNonEmptyString($method, 'Method must not be null or empty');
         Validator::isNonEmptyString($path, 'URL path must not be null or empty');
         try {

@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth;
 
-
 use Firebase\Auth\ListUsersPage\ListUsersResult;
 use Firebase\Auth\ListUsersPage\Page;
 use Firebase\Auth\ListUsersPage\PageFactory;

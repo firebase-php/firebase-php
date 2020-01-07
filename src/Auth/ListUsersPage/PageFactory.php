@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\ListUsersPage;
 
-
 use Firebase\Auth\FirebaseUserManager;
 use Firebase\Auth\ListUsersPage;
 use Firebase\Util\Validator\Validator;

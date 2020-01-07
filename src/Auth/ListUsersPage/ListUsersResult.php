@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\ListUsersPage;
 
-
 use Firebase\Auth\ExportedUserRecord;
 
 final class ListUsersResult

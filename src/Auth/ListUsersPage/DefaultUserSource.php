@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\ListUsersPage;
 
-
 use Firebase\Auth\ExportedUserRecord;
 use Firebase\Auth\FirebaseUserManager;
 use Firebase\Auth\ListUsersPage;
@@ -36,5 +35,4 @@ final class DefaultUserSource implements UserSource
         $nextPageToken = !is_null($response->getPageToken()) ? $response->getPageToken() : ListUsersPage::END_OF_LIST;
         return new ListUsersResult($usersBuilder, $nextPageToken);
     }
-
 }

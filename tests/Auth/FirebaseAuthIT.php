@@ -536,8 +536,7 @@ class FirebaseAuthIT extends TestCase
         string $email,
         string $newPassword,
         string $oobCode
-    )
-    {
+    ) {
         $url = self::RESET_PASSWORD_URL . '?key=' . IntegrationTestUtils::getApiKey();
         $content = [
             'email' => $email,
