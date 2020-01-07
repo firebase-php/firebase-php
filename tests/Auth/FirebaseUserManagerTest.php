@@ -193,6 +193,113 @@ class FirebaseUserManagerTest extends TestCase
         self::checkUserRecord($user);
     }
 
+    public function testImportUsers()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], '{}'),
+        ]);
+        $user1 = ImportUserRecord::builder()->setUid('user1')->build();
+        $user2 = ImportUserRecord::builder()->setUid('user2')->build();
+
+        $users = [$user1, $user2];
+        $result = FirebaseAuth::getInstance()->importUsers($users);
+
+        self::assertEquals(2, $result->getSuccessCount());
+        self::assertEquals(0, $result->getFailureCount());
+        self::assertTrue(empty($result->getErrors()));
+    }
+
+    public function testImportUsersError()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/importUsersError.json')),
+        ]);
+        $user1 = ImportUserRecord::builder()->setUid('user1')->build();
+        $user2 = ImportUserRecord::builder()->setUid('user2')->build();
+        $user3 = ImportUserRecord::builder()->setUid('user3')->build();
+
+        $users = [$user1, $user2, $user3];
+        $result = FirebaseAuth::getInstance()->importUsers($users);
+
+        self::assertEquals(1, $result->getSuccessCount());
+        self::assertEquals(2, $result->getFailureCount());
+        self::assertEquals(2, count($result->getErrors()));
+
+        $error = $result->getErrors()[0];
+        self::assertEquals(0, $error->getIndex());
+        self::assertEquals('Some error occurred in user1', $error->getReason());
+        $error = $result->getErrors()[1];
+        self::assertEquals(2, $error->getIndex());
+        self::assertEquals('Another error occurred in user3', $error->getReason());
+    }
+
+    public function testImportUsersWithHash()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], '{}'),
+        ]);
+        $user1 = ImportUserRecord::builder()
+            ->setUid('user1')
+            ->build();
+        $user2 = ImportUserRecord::builder()
+            ->setUid('user2')
+            ->setPasswordHash(base64_encode('password'))
+            ->build();
+
+        $users = [$user1, $user2];
+        $hash = new MockHash('MOCK_HASH');
+        $result = FirebaseAuth::getInstance()
+            ->importUsers($users, UserImportOptions::withHash($hash));
+        self::assertEquals(2, $result->getSuccessCount());
+        self::assertEquals(0, $result->getFailureCount());
+        self::assertEmpty($result->getErrors());
+    }
+
+    public function testImportUsersMissingHash()
+    {
+        self::initializeAppForUserManagement();
+        $user1 = ImportUserRecord::builder()
+            ->setUid('user1')
+            ->build();
+        $user2 = ImportUserRecord::builder()
+            ->setUid('user2')
+            ->setPasswordHash(base64_encode('password'))
+            ->build();
+
+        $users = [$user1, $user2];
+
+        try {
+            FirebaseAuth::getInstance()->importUsers($users);
+            self::fail('No error thrown for missing hash option');
+        } catch (InvalidArgumentException $e) {
+            self::assertEquals(
+                'UserImportHash option is required when at least one user has a password. '
+                . 'Provide a UserImportHash via UserImportOptions::withHash().',
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function testImportUsersEmptyList()
+    {
+        self::initializeAppForUserManagement();
+
+        $this->expectException(InvalidArgumentException::class);
+        FirebaseAuth::getInstance()->importUsers([]);
+    }
+
+    public function testImportUsersLargeList()
+    {
+        self::initializeAppForUserManagement();
+        $users = [];
+        for ($i = 0; $i < 1001; $i++) {
+            $users[] = ImportUserRecord::builder()->setUid("test$i")->build();
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        FirebaseAuth::getInstance()->importUsers($users);
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
