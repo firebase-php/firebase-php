@@ -209,18 +209,19 @@ class FirebaseAuthIT extends TestCase
             $uids[] = self::$auth->createUser((new CreateRequest())->setPassword('password'))->getUid();
             $uids[] = self::$auth->createUser((new CreateRequest())->setPassword('password'))->getUid();
 
-            $response = self::$auth->listUsers(null);
-            $users = $response->getUsers();
-            foreach ($users as $user) {
-                if (in_array($user->getUid(), $uids)) {
-                    $collected++;
-                    self::assertNotNull($user->getPasswordHash(), 'Missing passwordHash field. A common cause would be '
-                        . '"forgetting to add the "Firebase Authentication Admin" permission. See "'
-                        . 'instructions in CONTRIBUTING.md');
-                    self::assertNotNull($user->getPasswordSalt());
+            $page = self::$auth->listUsers(null);
+            while (!is_null($page)) {
+                foreach ($page->getValues() as $user) {
+                    if (in_array($user->getUid(), $uids)) {
+                        $collected++;
+                        self::assertNotNull($user->getPasswordHash(), 'Missing passwordHash field. A common cause would be '
+                            . '"forgetting to add the "Firebase Authentication Admin" permission. See "'
+                            . 'instructions in CONTRIBUTING.md');
+                        self::assertNotNull($user->getPasswordSalt());
+                    }
                 }
+                $page = $page->getNextPage();
             }
-
             self::assertEquals(count($uids), $collected);
         } finally {
             foreach ($uids as $uid) {
@@ -383,11 +384,11 @@ class FirebaseAuthIT extends TestCase
             [$user],
             UserImportOptions::withHash(
                 Scrypt::builder()
-                ->setKey($scryptKey)
-                ->setSaltSeparator($saltSeparator)
-                ->setRounds(8)
-                ->setMemoryCost(14)
-                ->build()
+                    ->setKey($scryptKey)
+                    ->setSaltSeparator($saltSeparator)
+                    ->setRounds(8)
+                    ->setMemoryCost(14)
+                    ->build()
             )
         );
         self::assertEquals(1, $result->getSuccessCount());
@@ -408,17 +409,17 @@ class FirebaseAuthIT extends TestCase
         $user = RandomUser::create();
         self::$auth->createUser(
             (new CreateRequest())
-            ->setUid($user->getUid())
-            ->setEmail($user->getEmail())
-            ->setEmailVerified(false)
-            ->setPassword('password')
+                ->setUid($user->getUid())
+                ->setEmail($user->getEmail())
+                ->setEmailVerified(false)
+                ->setPassword('password')
         );
         $link = self::$auth->generatePasswordResetLink(
             $user->getEmail(),
             ActionCodeSettings::builder()
-            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
-            ->setHandleCodeInApp(false)
-            ->build()
+                ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+                ->setHandleCodeInApp(false)
+                ->build()
         );
         $linkParams = $this->parseLinkParameters($link);
         self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
@@ -437,17 +438,17 @@ class FirebaseAuthIT extends TestCase
         $user = RandomUser::create();
         self::$auth->createUser(
             (new CreateRequest())
-            ->setUid($user->getUid())
-            ->setEmail($user->getEmail())
-            ->setEmailVerified(false)
-            ->setPassword('password')
+                ->setUid($user->getUid())
+                ->setEmail($user->getEmail())
+                ->setEmailVerified(false)
+                ->setPassword('password')
         );
         $link = self::$auth->generateEmailVerificationLink(
             $user->getEmail(),
             ActionCodeSettings::builder()
-            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
-            ->setHandleCodeInApp(false)
-            ->build()
+                ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+                ->setHandleCodeInApp(false)
+                ->build()
         );
         $linkParams = $this->parseLinkParameters($link);
         self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
@@ -460,17 +461,17 @@ class FirebaseAuthIT extends TestCase
         $user = RandomUser::create();
         self::$auth->createUser(
             (new CreateRequest())
-            ->setUid($user->getUid())
-            ->setEmail($user->getEmail())
-            ->setEmailVerified(false)
-            ->setPassword('password')
+                ->setUid($user->getUid())
+                ->setEmail($user->getEmail())
+                ->setEmailVerified(false)
+                ->setPassword('password')
         );
         $link = self::$auth->generateSignInWithEmailLink(
             $user->getEmail(),
             ActionCodeSettings::builder()
-            ->setUrl(self::ACTION_LINK_CONTINUE_URL)
-            ->setHandleCodeInApp(false)
-            ->build()
+                ->setUrl(self::ACTION_LINK_CONTINUE_URL)
+                ->setHandleCodeInApp(false)
+                ->build()
         );
         $linkParams = $this->parseLinkParameters($link);
         self::assertEquals(self::ACTION_LINK_CONTINUE_URL, $linkParams['continueUrl']);
@@ -535,7 +536,8 @@ class FirebaseAuthIT extends TestCase
         string $email,
         string $newPassword,
         string $oobCode
-    ) {
+    )
+    {
         $url = self::RESET_PASSWORD_URL . '?key=' . IntegrationTestUtils::getApiKey();
         $content = [
             'email' => $email,

@@ -137,7 +137,7 @@ class Validator
     {
         $rule = new IsTrue();
         $violations = self::validator()->validate($value, [$rule]);
-        self::check($violations, $message || $rule->message);
+        self::check($violations, $message ?? $rule->message);
     }
 
     /**

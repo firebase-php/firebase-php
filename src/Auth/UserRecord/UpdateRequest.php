@@ -3,7 +3,6 @@
 
 namespace Firebase\Auth\UserRecord;
 
-use Firebase\Auth\Internal\GetAccountInfoResponse\User;
 use Firebase\Auth\UserRecord;
 use Firebase\Util\Validator\Validator;
 
@@ -41,7 +40,7 @@ final class UpdateRequest
     public function setPhotoUrl(string $photoUrl = null)
     {
         if (!is_null($photoUrl)) {
-            Validator::isUid($photoUrl);
+            Validator::isURL($photoUrl);
         }
         $this->properties['photoUrl'] = $photoUrl;
         return $this;
@@ -83,12 +82,12 @@ final class UpdateRequest
             $copy['deleteAttribute'] = array_replace([], $remove);
         }
 
-        if (in_array('phoneNumber', $copy) && is_null($copy['phoneNumber'])) {
+        if (array_key_exists('phoneNumber', $copy) && is_null($copy['phoneNumber'])) {
             $copy['deleteProvider'] = ['phone'];
             unset($copy['phoneNumber']);
         }
 
-        if (isset($copy[UserRecord::CUSTOM_ATTRIBUTES])) {
+        if (array_key_exists(UserRecord::CUSTOM_ATTRIBUTES, $copy)) {
             $customClaims = array_replace([], $copy[UserRecord::CUSTOM_ATTRIBUTES]);
             $copy[UserRecord::CUSTOM_ATTRIBUTES] = UserRecord::serializeCustomClaims($customClaims);
         }

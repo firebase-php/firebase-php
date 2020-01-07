@@ -13,6 +13,7 @@ use Firebase\FirebaseApp;
 use Firebase\ImplFirebaseTrampolines;
 use Firebase\Util\Validator\Validator;
 use Google\Auth\CredentialsLoader;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
@@ -53,8 +54,6 @@ class FirebaseUserManager
 
     private $baseUrl;
 
-    private $httpClient;
-
     private $app;
 
     public function __construct(FirebaseApp $app)
@@ -64,7 +63,6 @@ class FirebaseUserManager
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         Validator::isNonEmptyString($projectId, 'Project ID is required to access the auth service. Use a service account credential or set the project ID explicitly via FirebaseOptions. Alternatively you can also set the project ID via the GOOGLE_CLOUD_PROJECT environment variable.');
         $this->baseUrl = sprintf(self::ID_TOOLKIT_URL, $projectId);
-        $this->httpClient = CredentialsLoader::makeHttpClient($this->app->getOptions()->getCredentials());
     }
 
     public function getUserById(string $uid): UserRecord
@@ -169,12 +167,6 @@ class FirebaseUserManager
         }
     }
 
-    /**
-     * @param int $maxResults
-     * @param string $pageToken
-     * @return DownloadAccountResponse|null
-     * @throws FirebaseAuthException
-     */
     public function listUsers(int $maxResults, ?string $pageToken = null)
     {
         $payload = ['maxResults' => $maxResults];
@@ -209,7 +201,8 @@ class FirebaseUserManager
     public function createSessionCookie(
         string $idToken = null,
         SessionCookieOptions $options = null
-    ) {
+    )
+    {
         $payload = [
             'idToken' => $idToken,
             'validDuration' => $options->getExpiresInSeconds()
@@ -228,8 +221,9 @@ class FirebaseUserManager
     public function getEmailActionLink(
         EmailLinkType $type,
         string $email,
-        ActionCodeSettings $settings
-    ) {
+        ?ActionCodeSettings $settings
+    )
+    {
         $payload = [
             'requestType' => $type,
             'email' => $email,
@@ -261,15 +255,17 @@ class FirebaseUserManager
      * @param string $path
      * @param array $content
      * @param array $requestOptions
-     * @return array|null|bool
+     * @return mixed|null
      * @throws FirebaseAuthException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function sendRequest(
         string $method,
         string $path,
         array $content,
         array $requestOptions = []
-    ) {
+    )
+    {
         Validator::isNonEmptyString($method, 'Method must not be null or empty');
         Validator::isNonEmptyString($path, 'URL path must not be null or empty');
         try {
@@ -287,22 +283,31 @@ class FirebaseUserManager
                 [],
                 $body
             );
-            $response = $this->httpClient->send($request, $requestOptions);
-            return json_decode($response->getBody(), true);
-        } catch (ClientException $e) {
+            $httpClient = $this->app->getOptions()->getHttpClient();
+            $response = $httpClient->send($request, $requestOptions);
+            if ($response->getStatusCode() >= 300) {
+                throw new BadResponseException('Redirect exception', $request, $response);
+            }
+            $decoded = json_decode($response->getBody(), true);
+            $error = json_last_error();
+            if ($error !== JSON_ERROR_NONE) {
+                throw new \InvalidArgumentException(json_last_error_msg(), json_last_error());
+            }
+            return $decoded;
+        } catch (BadResponseException $e) {
             $this->handleHttpError($e);
             return null;
-        } catch (\RuntimeException $e) {
+        } catch (\Exception $e) {
             throw new FirebaseAuthException(self::INTERNAL_ERROR, 'Error while calling user management backend service', $e);
         }
     }
 
-    private function handleHttpError(ClientException $e)
+    private function handleHttpError(BadResponseException $e)
     {
         $contents = $e->getResponse()->getBody()->getContents();
         try {
             $arr = json_decode($contents, true);
-            $code = self::ERROR_CODES[$arr['error']['message']] ?? null;
+            $code = self::ERROR_CODES[$arr['error']['message'] ?? ''] ?? null;
             if (!is_null($code)) {
                 throw new FirebaseAuthException($code, 'User management service responded with an error', $e);
             }
@@ -310,7 +315,7 @@ class FirebaseUserManager
         }
 
         $msg = sprintf(
-            'Unexpected HTTP response with status %d; body: %s',
+            'Unexpected HTTP response with status: %d; body: %s',
             $e->getCode(),
             $contents
         );

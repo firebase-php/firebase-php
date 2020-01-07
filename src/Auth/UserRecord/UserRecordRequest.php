@@ -29,7 +29,7 @@ trait UserRecordRequest
         return $this;
     }
 
-    public function setDisplayName(string $displayName = null)
+    public function setDisplayName(string $displayName)
     {
         Validator::isNonEmptyString($displayName, 'Display name cannot be null or empty');
         $this->properties['displayName'] = $displayName;

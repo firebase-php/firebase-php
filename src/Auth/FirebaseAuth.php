@@ -6,6 +6,8 @@ namespace Firebase\Auth;
 use Carbon\Carbon;
 use Firebase\Auth\Internal\EmailLinkType;
 use Firebase\Auth\Internal\FirebaseTokenFactory;
+use Firebase\Auth\ListUsersPage\DefaultUserSource;
+use Firebase\Auth\ListUsersPage\PageFactory;
 use Firebase\Auth\UserRecord\CreateRequest;
 use Firebase\Auth\UserRecord\UpdateRequest;
 use Firebase\FirebaseApp;
@@ -70,6 +72,7 @@ class FirebaseAuth
             throw new \Exception('App is deleted');
         }
 
+        /** @var FirebaseAuthService $service */
         $service = ImplFirebaseTrampolines::getService($app, self::SERVICE_ID, FirebaseAuthService::class);
         if (is_null($service)) {
             $service = ImplFirebaseTrampolines::addService($app, new FirebaseAuthService($app));
@@ -154,7 +157,13 @@ class FirebaseAuth
     public function listUsers(?string $pageToken = null, int $maxResults = FirebaseUserManager::MAX_LIST_USERS_RESULT)
     {
         $this->checkNotDestroyed();
-        return $this->getUserManager()->listUsers($maxResults, $pageToken);
+        $factory = new PageFactory(
+            new DefaultUserSource($this->getUserManager()),
+            $maxResults,
+            $pageToken
+        );
+
+        return $factory->create();
     }
 
     public function createUser(CreateRequest $request = null)
@@ -216,7 +225,7 @@ class FirebaseAuth
         return $this->generateEmailActionLink(EmailLinkType::VERIFY_EMAIL(), $email, $settings);
     }
 
-    public function generateSignInWithEmailLink(string $email, ActionCodeSettings $settings = null)
+    public function generateSignInWithEmailLink(string $email, ActionCodeSettings $settings)
     {
         return $this->generateEmailActionLink(EmailLinkType::EMAIL_SIGNIN(), $email, $settings);
     }

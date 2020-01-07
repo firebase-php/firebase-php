@@ -42,14 +42,9 @@ class FirebaseOptionsBuilder
     private $credentials;
 
     /**
-     * @var array|null
+     * @var ClientInterface|null
      */
-    private $httpMiddlewares;
-
-    /**
-     * @var array|null
-     */
-    private $httpConfigs;
+    private $httpClient;
 
     public function __construct(?FirebaseOptions $options = null)
     {
@@ -61,8 +56,7 @@ class FirebaseOptionsBuilder
         $this->credentials = $options->getCredentials();
         $this->databaseAuthVariableOverride = $options->getDatabaseAuthVariableOverride();
         $this->projectId = $options->getProjectId();
-        $this->httpConfigs = $options->getHttpConfigs();
-        $this->httpMiddlewares = $options->getHttpMiddlewares();
+        $this->httpClient = $options->getHttpClient();
     }
 
     /**
@@ -178,38 +172,20 @@ class FirebaseOptionsBuilder
     }
 
     /**
-     * @return array|null
+     * @return ClientInterface|null
      */
-    public function getHttpMiddlewares(): ?array
+    public function getHttpClient(): ?ClientInterface
     {
-        return $this->httpMiddlewares;
+        return $this->httpClient;
     }
 
     /**
-     * @param array|null $httpMiddlewares
+     * @param ClientInterface|null $httpClient
      * @return FirebaseOptionsBuilder
      */
-    public function setHttpMiddlewares(?array $httpMiddlewares): FirebaseOptionsBuilder
+    public function setHttpClient(?ClientInterface $httpClient): FirebaseOptionsBuilder
     {
-        $this->httpMiddlewares = $httpMiddlewares;
-        return $this;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getHttpConfigs(): ?array
-    {
-        return $this->httpConfigs;
-    }
-
-    /**
-     * @param array|null $httpConfigs
-     * @return FirebaseOptionsBuilder
-     */
-    public function setHttpConfigs(?array $httpConfigs): FirebaseOptionsBuilder
-    {
-        $this->httpConfigs = $httpConfigs;
+        $this->httpClient = $httpClient;
         return $this;
     }
 

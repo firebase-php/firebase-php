@@ -11,7 +11,7 @@ class UploadAccountResponse implements ResponseBuilder
      * @var ErrorInfo[]
      * @key error
      */
-    private $errors;
+    private $errors = [];
 
     /**
      * @return ErrorInfo[]
@@ -23,14 +23,13 @@ class UploadAccountResponse implements ResponseBuilder
 
     public static function build(array $content = null)
     {
-        if (empty($content)) {
-            return null;
-        }
         $response = new static();
-        $response->errors = [];
-        if (is_array($content) && isset($content['error'])) {
+        if (!is_array($content) || !isset($content['error'])) {
+            return $response;
+        }
+        if (is_array($content['error'])) {
             foreach ($content['error'] as $error) {
-                $response->errors = new ErrorInfo($error['index'], $error['message']);
+                $response->errors[] = new ErrorInfo($error['index'], $error['message']);
             }
         }
         return $response;

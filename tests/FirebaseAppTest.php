@@ -58,8 +58,9 @@ class FirebaseAppTest extends TestCase
     public function testGetProjectIdFromOptions()
     {
         $dummyProjectId = 'explicit-project-id';
-        $options = clone self::OPTIONS();
-        $options->setProjectId($dummyProjectId);
+        $options = FirebaseOptions::builder(self::OPTIONS())
+            ->setProjectId($dummyProjectId)
+            ->build();
         $app = FirebaseApp::initializeApp($options, 'myApp');
         $projectId = ImplFirebaseTrampolines::getProjectId($app);
         $this->assertEquals($dummyProjectId, $projectId);
@@ -199,8 +200,9 @@ class FirebaseAppTest extends TestCase
     public function testAppWithAuthVariableOverrides()
     {
         $authVariableOverrides = ['uid' => 'uid1'];
-        $options = self::OPTIONS()
-            ->setDatabaseAuthVariableOverride($authVariableOverrides);
+        $options = FirebaseOptions::builder(self::OPTIONS())
+            ->setDatabaseAuthVariableOverride($authVariableOverrides)
+            ->build();
         $app = FirebaseApp::initializeApp($options, 'testGetAppWithUid');
         $this->assertEquals('uid1', $app->getOptions()->getDatabaseAuthVariableOverride()['uid']);
         $token = TestOnlyImplFirebaseTrampolines::getToken($app);

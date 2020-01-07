@@ -94,7 +94,8 @@ class Provider implements ResponseBuilder
         $provider = new static();
         $provider->uid = $content['rawId'] ?? null;
         $provider->email = $content['email'] ?? null;
-        $provider->phoneNumber = $content['displayName'] ?? null;
+        $provider->displayName = $content['displayName'] ?? null;
+        $provider->phoneNumber = $content['phoneNumber'] ?? null;
         $provider->photoUrl = $content['photoUrl'] ?? null;
         $provider->providerId = $content['providerId'] ?? null;
 
