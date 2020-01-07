@@ -131,6 +131,48 @@ class FirebaseUserManagerTest extends TestCase
         }
     }
 
+    public function testListUsers()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/listUsers.json'))
+        ]);
+        $page = FirebaseAuth::getInstance()->listUsers(null, 999);
+        self::assertEquals(2, count($page->getValues()));
+        foreach ($page->getValues() as $userRecord) {
+            self::checkUserRecord($userRecord);
+            self::assertEquals('passwordHash', $userRecord->getPasswordHash());
+            self::assertEquals('passwordSalt', $userRecord->getPasswordSalt());
+        }
+
+        self::assertEquals('', $page->getNextPageToken());
+    }
+
+    public function testListUsersWithPageToken()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/listUsers.json'))
+        ]);
+        $page = FirebaseAuth::getInstance()->listUsers('token', 999);
+        self::assertEquals(2, count($page->getValues()));
+        foreach ($page->getValues() as $userRecord) {
+            self::checkUserRecord($userRecord);
+            self::assertEquals('passwordHash', $userRecord->getPasswordHash());
+            self::assertEquals('passwordSalt', $userRecord->getPasswordSalt());
+        }
+
+        self::assertEquals('', $page->getNextPageToken());
+    }
+
+    public function testListZeroUsers()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], '{}'),
+        ]);
+        $page = FirebaseAuth::getInstance()->listUsers(null);
+        self::assertTrue(empty($page->getValues()));
+        self::assertEquals('', $page->getNextPageToken());
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
