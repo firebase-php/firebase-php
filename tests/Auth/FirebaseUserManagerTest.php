@@ -300,6 +300,73 @@ class FirebaseUserManagerTest extends TestCase
         FirebaseAuth::getInstance()->importUsers($users);
     }
 
+    public function testCreateSessionCookie()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], TestUtils::loadResource('/createSessionCookie.json')),
+        ]);
+        $options = SessionCookieOptions::builder()
+            ->setExpiresIn(CarbonInterval::hours(1)->totalMilliseconds)
+            ->build();
+        $cookie = FirebaseAuth::getInstance()->createSessionCookie('testToken', $options);
+        self::assertEquals('MockCookieString', $cookie);
+    }
+
+    public function testCreateSessionCookieInvalidArguments()
+    {
+        self::initializeAppForUserManagement();
+        $options = SessionCookieOptions::builder()
+            ->setExpiresIn(CarbonInterval::hours(1)->totalMilliseconds)
+            ->build();
+
+        try {
+            FirebaseAuth::getInstance()->createSessionCookie(null, $options);
+            self::fail('No error thrown for null id token');
+        } catch (\TypeError $e) {
+        }
+
+        try {
+            FirebaseAuth::getInstance()->createSessionCookie('', $options);
+            self::fail('No error thrown for empty id token');
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            FirebaseAuth::getInstance()->createSessionCookie('idToken', null);
+            self::fail('No error thrown for null options');
+        } catch (\TypeError $e) {
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidSessionCookieOptions()
+    {
+        try {
+            SessionCookieOptions::builder()->build();
+            self::fail('No error thrown for unspecified expiresIn');
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            SessionCookieOptions::builder()
+                ->setExpiresIn(CarbonInterval::seconds(299)->totalMilliseconds)
+                ->build();
+            self::fail('No error thrown for low expiresIn');
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            SessionCookieOptions::builder()
+                ->setExpiresIn(CarbonInterval::days(14)->totalMilliseconds + 1)
+                ->build();
+            self::fail('No error thrown for high expiresIn');
+        } catch (InvalidArgumentException $e) {
+        }
+
+        self::assertTrue(true);
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
