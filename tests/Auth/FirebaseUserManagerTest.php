@@ -367,6 +367,86 @@ class FirebaseUserManagerTest extends TestCase
         self::assertTrue(true);
     }
 
+    public function testGetUserHttpError()
+    {
+        $ops = [
+            function (FirebaseAuth $auth) {
+                $auth->getUserByEmail('testuser@example.com');
+            },
+            function (FirebaseAuth $auth) {
+                $auth->getUserByPhoneNumber('+1234567890');
+            },
+            function (FirebaseAuth $auth) {
+                $auth->createUser(new UserRecord\CreateRequest());
+            },
+            function (FirebaseAuth $auth) {
+                $auth->updateUser(new UserRecord\UpdateRequest('test'));
+            },
+            function (FirebaseAuth $auth) {
+                $auth->deleteUser('testuser');
+            },
+            function (FirebaseAuth $auth) {
+                $auth->listUsers(null, 1000);
+            },
+        ];
+        $codes = [302, 400, 401, 404, 500];
+        $mockResponse = [];
+
+        // For test common HTTP error codes
+        foreach ($codes as $code) {
+            foreach ($ops as $op) {
+                $mockResponse[] = new Response($code, [], '{}');
+            }
+        }
+
+        // For test error payload parsing
+        foreach ($ops as $op) {
+            $mockResponse[] = new Response(500, [], '{"error": {"message": "USER_NOT_FOUND"}}');
+        }
+        $mockHandler = new MockHandler($mockResponse);
+        $credentials = self::credentials();
+        $middleware = new AuthTokenMiddleware($credentials);
+        $stack = HandlerStack::create($mockHandler);
+        $stack->push($middleware);
+        $httpClient = new Client(['handler' => $stack]);
+        FirebaseApp::initializeApp(
+            FirebaseOptions::builder()
+                ->setCredentials($credentials)
+                ->setProjectId('test-project-id')
+                ->setHttpClient($httpClient)
+                ->build()
+        );
+
+        // Test common HTTP error codes
+        foreach ($codes as $code) {
+            foreach ($ops as $op) {
+                try {
+                    $op(FirebaseAuth::getInstance());
+                    self::fail('No error thrown for HTTP error: ' . $code);
+                } catch (\Exception $e) {
+                    self::assertTrue($e instanceof FirebaseAuthException);
+                    $msg = sprintf('Unexpected HTTP response with status: %d; body: {}', $code);
+                    self::assertEquals($msg, $e->getMessage());
+                    self::assertEquals(FirebaseUserManager::INTERNAL_ERROR, $e->getCode());
+                    self::assertTrue($e->getPrevious() instanceof BadResponseException);
+                }
+            }
+        }
+
+        // Test error payload parsing
+        foreach ($ops as $op) {
+            try {
+                $op(FirebaseAuth::getInstance());
+                self::fail('No error thrown for HTTP error');
+            } catch (\Exception $e) {
+                self::assertTrue($e instanceof FirebaseAuthException);
+                self::assertEquals('User management service responded with an error', $e->getMessage());
+                self::assertEquals(FirebaseUserManager::USER_NOT_FOUND_ERROR, $e->getCode());
+                self::assertTrue($e->getPrevious() instanceof BadResponseException);
+            }
+        }
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
