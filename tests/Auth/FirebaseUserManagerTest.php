@@ -447,6 +447,49 @@ class FirebaseUserManagerTest extends TestCase
         }
     }
 
+    public function testGetUserMalformedJsonError()
+    {
+        self::initializeAppForUserManagement([
+            new Response(200, [], '{"not" json}')
+        ]);
+        try {
+            FirebaseAuth::getInstance()->getUser('testuser');
+            self::fail('No error thrown for JSON error');
+        } catch (\Exception $e) {
+            self::assertTrue($e instanceof FirebaseAuthException);
+            self::assertTrue($e->getPrevious() instanceof \InvalidArgumentException);
+            self::assertEquals(FirebaseUserManager::INTERNAL_ERROR, $e->getCode());
+        }
+    }
+
+    public function testGetUserUnexpectedHttpError()
+    {
+        $mockHandler = new MockHandler([
+            new Response(500, [], '{"not" json}')
+        ]);
+        $credentials = self::credentials();
+        $middleware = new AuthTokenMiddleware($credentials);
+        $stack = HandlerStack::create($mockHandler);
+        $stack->push($middleware);
+        $httpClient = new Client(['handler' => $stack]);
+        FirebaseApp::initializeApp(
+            FirebaseOptions::builder()
+                ->setCredentials($credentials)
+                ->setProjectId('test-project-id')
+                ->setHttpClient($httpClient)
+                ->build()
+        );
+        try {
+            FirebaseAuth::getInstance()->getUser('testuser');
+            self::fail('No error thrown for JSON error');
+        } catch (\Exception $e) {
+            self::assertTrue($e instanceof FirebaseAuthException);
+            self::assertTrue($e->getPrevious() instanceof BadResponseException);
+            self::assertEquals('Unexpected HTTP response with status: 500; body: {"not" json}', $e->getMessage());
+            self::assertEquals(FirebaseUserManager::INTERNAL_ERROR, $e->getCode());
+        }
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
