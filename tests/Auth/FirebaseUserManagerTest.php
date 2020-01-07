@@ -490,6 +490,369 @@ class FirebaseUserManagerTest extends TestCase
         }
     }
 
+    public function testUserBuilder()
+    {
+        $map = (new UserRecord\CreateRequest())->getProperties();
+        self::assertEmpty($map);
+    }
+
+    public function testUserBuilderWithParams()
+    {
+        $map = (new UserRecord\CreateRequest())
+            ->setUid('TestUid')
+            ->setDisplayName('Display Name')
+            ->setPhotoUrl('http://test.com/example.png')
+            ->setEmail('test@example.com')
+            ->setPhoneNumber('+1234567890')
+            ->setEmailVerified(true)
+            ->setPassword('secret')
+            ->getProperties();
+        self::assertEquals(7, count($map));
+        self::assertEquals('TestUid', $map['localId']);
+        self::assertEquals('Display Name', $map['displayName']);
+        self::assertEquals('http://test.com/example.png', $map['photoUrl']);
+        self::assertEquals('test@example.com', $map['email']);
+        self::assertEquals('+1234567890', $map['phoneNumber']);
+        self::assertTrue((bool)$map['emailVerified']);
+        self::assertEquals('secret', $map['password']);
+    }
+
+    public function testInvalidUid()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setUid(null);
+            self::fail('No error thrown for null uid');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setUid('');
+            self::fail('No error thrown for empty uid');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setUid(sprintf('%0129d', 0));
+            self::fail('No error thrown for long uid');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidDisplayName()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setDisplayName(null);
+            self::fail('No error thrown for null uid');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidPhotoUrl()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setPhotoUrl(null);
+            self::fail('No error thrown for null photo url');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhotoUrl('');
+            self::fail('No error thrown for empty photo url');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhotoUrl('not-a-url');
+            self::fail('No error thrown for invalid photo url');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidEmail()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setEmail(null);
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setEmail('');
+            self::fail('No error thrown for empty email');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setEmail('not-a-email');
+            self::fail('No error thrown for invalid email');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidPhoneNumber()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setPhoneNumber(null);
+            self::fail('No error thrown for null phone number');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhoneNumber('');
+            self::fail('No error thrown for empty phone number');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhoneNumber('not-a-phone');
+            self::fail('No error thrown for invalid phone number');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidPassword()
+    {
+        $user = new UserRecord\CreateRequest();
+        try {
+            $user->setPassword(null);
+            self::fail('No error thrown for null password');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setPassword('aaaaa');
+            self::fail('No error thrown for short password');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testUserUpdater()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $claims = [
+            'admin' => true,
+            'package' => 'gold'
+        ];
+        $map = $update
+            ->setDisplayName('Display Name')
+            ->setPhotoUrl('http://test.com/example.png')
+            ->setEmail('test@example.com')
+            ->setPhoneNumber('+1234567890')
+            ->setEmailVerified(true)
+            ->setPassword('secret')
+            ->setCustomClaims($claims)
+            ->getProperties();
+        self::assertEquals(8, count($map));
+        self::assertEquals($update->getUid(), $map['localId']);
+        self::assertEquals('Display Name', $map['displayName']);
+        self::assertEquals('http://test.com/example.png', $map['photoUrl']);
+        self::assertEquals('test@example.com', $map['email']);
+        self::assertEquals('+1234567890', $map['phoneNumber']);
+        self::assertTrue((bool)$map['emailVerified']);
+        self::assertEquals('secret', $map['password']);
+        self::assertEquals(json_encode($claims), $map['customAttributes']);
+    }
+
+    public function testNullCustomClaims()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $map = $update
+            ->setCustomClaims(null)
+            ->getProperties();
+
+        self::assertEquals(2, count($map));
+        self::assertEquals($update->getUid(), $map['localId']);
+        self::assertEquals('{}', $map['customAttributes']);
+    }
+
+    public function testEmptyCustomClaims()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $map = $update
+            ->setCustomClaims([])
+            ->getProperties();
+
+        self::assertEquals(2, count($map));
+        self::assertEquals($update->getUid(), $map['localId']);
+        self::assertEquals('{}', $map['customAttributes']);
+    }
+
+    public function testDeleteDisplayName()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $map = $update
+            ->setDisplayName(null)
+            ->getProperties();
+        self::assertEquals(['DISPLAY_NAME'], $map['deleteAttribute']);
+    }
+
+    public function testDeletePhotoUrl()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $map = $update
+            ->setPhotoUrl(null)
+            ->getProperties();
+        self::assertEquals(['PHOTO_URL'], $map['deleteAttribute']);
+    }
+
+    public function testDeletePhoneNumber()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        $map = $update
+            ->setPhoneNumber(null)
+            ->getProperties();
+        self::assertEquals(['phone'], $map['deleteProvider']);
+    }
+
+    public function testInvalidUpdatePhotoUrl()
+    {
+        $user = new UserRecord\UpdateRequest('test');
+
+        try {
+            $user->setPhotoUrl('');
+            self::fail('No error thrown for empty photo url');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhotoUrl('not-a-url');
+            self::fail('No error thrown for invalid photo url');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidUpdateEmail()
+    {
+        $user = new UserRecord\UpdateRequest('test');
+        try {
+            $user->setEmail(null);
+            self::fail('No error thrown for null email');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setEmail('');
+            self::fail('No error thrown for empty email');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setEmail('not-an-email');
+            self::fail('No error thrown for invalid email');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidUpdatePhoneNumber()
+    {
+        $user = new UserRecord\UpdateRequest('test');
+
+        try {
+            $user->setPhoneNumber('');
+            self::fail('No error thrown for empty phone number');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        try {
+            $user->setPhoneNumber('not-a-phone');
+            self::fail('No error thrown for invalid phone number');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidUpdatePassword()
+    {
+        $user = new UserRecord\UpdateRequest('test');
+        try {
+            $user->setPassword(null);
+            self::fail('No error thrown for null password');
+        } catch (\TypeError $e) {
+            // expected
+        }
+
+        try {
+            $user->setPassword('aaaaa');
+            self::fail('No error thrown for short password');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+
+        self::assertTrue(true);
+    }
+
+    public function testInvalidCustomClaims()
+    {
+        $update = new UserRecord\UpdateRequest('test');
+        foreach (FirebaseUserManager::RESERVED_CLAIMS as $claim) {
+            try {
+                $update->setCustomClaims([$claim => 'value']);
+                self::fail('No error thrown for reserved claim');
+            } catch (InvalidArgumentException $e) {
+                // expected
+            }
+        }
+        self::assertTrue(true);
+    }
+
+    public function testLargeCustomClaims()
+    {
+        $value = str_repeat('a', 1001);
+        $update = new UserRecord\UpdateRequest('test');
+        $update->setCustomClaims(['key' => $value]);
+        try {
+            $update->getProperties();
+            self::fail('No error thrown for large claims payload');
+        } catch (InvalidArgumentException $e) {
+            // expected
+        }
+        self::assertTrue(true);
+    }
+
     private static function initializeAppForUserManagement(array $mockResponse = [])
     {
         $mockHandler = new MockHandler($mockResponse);
